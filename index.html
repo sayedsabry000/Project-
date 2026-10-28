@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>CONTRACTOR DAILY REPORT — المرسل</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+/* ========== RESET & VARIABLES ========== */
+:root{
+  --primary: #1e3a5f;
+  --accent: #facc15;
+  --bg: #e2e8f0;
+  --paper: #ffffff;
+  --border: #94a3b8;
+  --text: #0f172a;
+  --danger: #ef4444;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);
+  font-size:14px;padding-bottom:90px;
+}
+
+/* ========== TOP BAR ========== */
+.topbar{
+  background:var(--primary);color:#fff;padding:12px 20px;
+  display:flex;justify-content:space-between;align-items:center;
+  position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px;
+}
+.topbar h1{font-size:16px;font-weight:700;margin:0}
+.status{font-size:12px;background:rgba(255,255,255,0.1);padding:4px 10px;border-radius:20px}
+
+/* ========== LAYOUT ========== */
+.paper-wrap{
+  padding: 15px;
+  display: flex;
+  justify-content: center;
+}
+.paper{
+  background:var(--paper);width:100%;max-width:1100px;
+  padding:20px;box-shadow:0 4px 15px rgba(0,0,0,.08);
+  border:1px solid var(--border);border-radius:8px;
+}
+
+/* ========== HEADER ========== */
+.header-grid{
+  display:grid;grid-template-columns:1fr 2fr 1fr;
+  align-items:center;text-align:center;margin-bottom:20px;
+  border-bottom:2px solid var(--primary);padding-bottom:15px;
+}
+.logo-box{font-weight:800;font-size:16px;color:var(--primary);line-height:1.2}
+.title-box h2{font-size:18px;margin-bottom:2px;color:var(--primary)}
+.title-box p{font-size:12px;color:#64748b}
+
+/* ========== TABLES (DESKTOP) ========== */
+.info-table, .data-table {
+  width:100%;border-collapse:collapse;margin-bottom:20px;
+}
+.info-table th, .info-table td, .data-table th, .data-table td{
+  border:1px solid var(--border);padding:8px;text-align:center;
+  vertical-align:middle;
+}
+.info-table th, .data-table th{
+  background:#f8fafc;color:var(--primary);font-weight:700;font-size:12px;
+}
+.data-table th{background:var(--accent);color:#000;}
+.info-table input, .data-table input, .data-table select{
+  width:100%;border:1px solid transparent;background:transparent;
+  text-align:center;font-family:inherit;font-size:13px;padding:6px;
+  border-radius:4px;transition:.2s;
+}
+.info-table input:focus, .data-table input:focus, .data-table select:focus{
+  border-color:var(--primary);background:#fff;outline:none;
+}
+.data-table th[colspan] { border-bottom: 1px solid var(--border); }
+
+/* ========== SECTION TITLE ========== */
+.section-title{
+  background:#f1f5f9;color:var(--primary);font-weight:800;
+  padding:8px 12px;border:1px solid var(--border);
+  border-bottom:none;border-radius:6px 6px 0 0;margin-top:15px;
+  font-size:13px;
+}
+
+/* ========== ACTIONS BAR (FIXED BOTTOM) ========== */
+.action-bar{
+  position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,0.95);
+  backdrop-filter: blur(5px); padding:10px 20px;border-top:1px solid var(--border);
+  display:flex;gap:8px;justify-content:center;flex-wrap:wrap;z-index:100;
+  box-shadow:0 -2px 10px rgba(0,0,0,.05);
+}
+.btn{
+  padding:8px 14px;border:1px solid var(--border);background:#fff;
+  border-radius:6px;font-family:inherit;font-weight:700;font-size:13px;
+  cursor:pointer;display:flex;align-items:center;gap:6px;transition:.2s;
+}
+.btn:hover{background:#f1f5f9}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:#152a47}
+.btn-accent{background:var(--accent);color:#000;border-color:#eab308}
+.btn-accent:hover{background:#eab308}
+.btn-danger{background:#fee2e2;color:var(--danger);border-color:#fca5a5}
+.btn-danger:hover{background:#fecaca}
+.row-remove{
+  background:transparent;border:none;color:var(--danger);
+  cursor:pointer;font-size:18px;font-weight:bold;padding:0 5px;
+}
+
+/* ========== TOAST ========== */
+.toast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+  background:#333;color:#fff;padding:10px 20px;border-radius:20px;
+  z-index:9999;font-weight:bold;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,0.2);
+}
+.toast-err{background:var(--danger)}
+
+/* ========== RESPONSIVE (MOBILE) ========== */
+@media (max-width: 768px) {
+  .paper{padding:10px;}
+  .header-grid{grid-template-columns:1fr; gap:10px;}
+  .logo-box{display:none;} /* إخفاء الشعارات لتوفير المساحة */
+  
+  /* تحويل الجداول لصناديق */
+  .info-table, .data-table, .info-table tbody, .data-table tbody, .info-table tr, .data-table tr, .info-table td, .data-table td {
+    display: block; width: 100%;
+  }
+  
+  .info-table th { display: none; }
+  
+  .info-table td {
+    border: none; border-bottom: 1px solid var(--border); padding: 4px 0;
+    text-align: right; display: flex; justify-content: space-between; align-items: center;
+  }
+  .info-table td::before {
+    content: attr(data-label); font-weight: bold; color: var(--primary); font-size: 12px;
+  }
+
+  .data-table tr {
+    border: 1px solid var(--border); margin-bottom: 15px;
+    border-radius: 8px; overflow: hidden; background: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,.05); position: relative;
+  }
+  
+  .data-table th { display: none; } /* إخفاء الهيدر */
+  
+  .data-table td {
+    border: none; border-bottom: 1px dashed var(--border);
+    text-align: right; padding: 8px 12px; display: flex;
+    justify-content: space-between; align-items: center; gap: 10px;
+  }
+  .data-table td:last-child { border-bottom: none; background: #f8fafc; justify-content: center; }
+  
+  .data-table td::before {
+    content: attr(data-label); font-weight: bold; color: #475569; font-size: 11px;
+    flex-shrink: 0;
+  }
+  
+  .data-table input, .data-table select {
+    text-align: left; background: #f1f5f9; padding: 6px;
+    border: 1px solid #cbd5e1; width: 60%;
+  }
+  
+  .row-remove { width: 100%; padding: 8px; background: #fee2e2; border-radius: 4px; }
+  
+  /* أزرار الفوتر */
+  .action-bar { padding: 8px; gap: 4px; }
+  .btn { padding: 6px 10px; font-size: 11px; flex: 1 1 30%; justify-content: center; }
+  .btn span { display: none; } /* إخفاء النص والاعتماد على الأيقونة لو ضاقت الشاشة جداً */
+}
+
+/* ========== PRINT ========== */
+@media print{
+  body{background:#fff;padding:0}
+  .topbar, .action-bar, .no-print{display:none !important}
+  .paper{box-shadow:none;border:none;margin:0;padding:0;max-width:100%}
+  input, select{border:none !important;background:transparent !important; text-align:center;}
+  /* إرجاع الجداول لشكلها الورقي في الطباعة */
+  .info-table, .data-table { display: table; width: 100%; }
+  .info-table tbody, .data-table tbody { display: table-row-group; }
+  .info-table tr, .data-table tr { display: table-row; }
+  .info-table td, .data-table td, .info-table th, .data-table th { display: table-cell; text-align:center; border:1px solid #000; }
+  .info-table td::before, .data-table td::before { content: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar no-print">
+  <h1>DAILY REPORT — الإدخال</h1>
+  <div class="status" id="connText">جاهز</div>
+</div>
+
+<div class="paper-wrap">
+  <div class="paper" id="reportPaper">
+
+    <!-- Header -->
+    <div class="header-grid">
+      <div class="logo-box">OPM<br><small style="font-size:9px;font-weight:normal">PROJECT MANAGEMENT</small></div>
+      <div class="title-box">
+        <h2>1032 SQUARE MALL</h2>
+        <p>DAILY REPORT</p>
+      </div>
+      <div class="logo-box">AL MORTAGABA</div>
+    </div>
+
+    <!-- Info Section -->
+    <div class="section-title">PROJECT INFO</div>
+    <table class="info-table">
+      <tr>
+        <th>WORK PACKAGE</th>
+        <td data-label="WORK PACKAGE"><input id="workPackage" placeholder="..." /></td>
+        <th>DR NO.</th>
+        <td data-label="DR NO."><input id="reportId" readonly style="font-weight:bold" /></td>
+      </tr>
+      <tr>
+        <th>CONTRACT</th>
+        <td data-label="CONTRACT"><input id="contractName" placeholder="..." /></td>
+        <th>DATE</th>
+        <td data-label="DATE"><input id="reportDate" type="text" style="font-weight:bold" /></td>
+      </tr>
+      <tr>
+        <th>CONTRACTOR</th>
+        <td data-label="CONTRACTOR"><input id="contractor" placeholder="..." /></td>
+        <th>DAY</th>
+        <td data-label="DAY"><input id="reportDay" readonly /></td>
+      </tr>
+      <tr>
+        <th>To:</th>
+        <td colspan="3" data-label="To"><input id="toWhom" value="The Engineer (PMO) Representative" /></td>
+      </tr>
+    </table>
+
+    <!-- Weather -->
+    <div class="section-title">WEATHER</div>
+    <table class="data-table">
+      <thead><tr><th>Sky</th><th>Temp. o C</th><th>Wind</th></tr></thead>
+      <tbody>
+        <tr>
+          <td data-label="Sky"><select id="weatherSky"><option value=""></option><option>Bright Sun</option><option>Clear</option><option>Overcast</option><option>Rain</option><option>Dust</option></select></td>
+          <td data-label="Temp. o C"><select id="weatherTemp"><option value=""></option><option>UP To 15</option><option>15 - 30</option><option>30 - 40</option><option>40 - 50</option><option>50 up</option></select></td>
+          <td data-label="Wind"><select id="weatherWind"><option value=""></option><option>Still</option><option>Mod.Still</option><option>High</option><option>Unsafe</option></select></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Manpower -->
+    <div class="section-title">MANPOWER</div>
+    <table class="data-table" id="manpowerTable">
+      <thead>
+        <tr>
+          <th rowspan="2">Discipline</th>
+          <th colspan="2">Contractor</th>
+          <th rowspan="2">Total</th>
+          <th rowspan="2" class="no-print"></th>
+        </tr>
+        <tr><th>No.</th><th>Time</th></tr>
+      </thead>
+      <tbody id="manpowerBody"></tbody>
+    </table>
+    <button class="btn no-print" onclick="addManpowerRow()" style="margin-bottom:15px">+ إضافة عمالة</button>
+
+    <!-- Equipment -->
+    <div class="section-title">CONSTRUCTION EQUIPMENT & VEHICLES</div>
+    <table class="data-table" id="equipmentTable">
+      <thead>
+        <tr>
+          <th rowspan="2">Description</th><th rowspan="2">Capa.</th>
+          <th colspan="3">No. on Site</th><th rowspan="2" class="no-print"></th>
+        </tr>
+        <tr><th>Working</th><th>Duration</th><th>Total</th></tr>
+      </thead>
+      <tbody id="equipmentBody"></tbody>
+    </table>
+    <button class="btn no-print" onclick="addEquipmentRow()" style="margin-bottom:15px">+ إضافة معدة</button>
+
+    <!-- Materials -->
+    <div class="section-title">MATERIAL/EQUIPMENT DELIVERED TO SITE</div>
+    <table class="data-table" id="materialsTable">
+      <thead><tr><th>Description</th><th>Quantity</th><th>Unit</th><th>Origin</th><th class="no-print"></th></tr></thead>
+      <tbody id="materialsBody"></tbody>
+    </table>
+    <button class="btn no-print" onclick="addMaterialRow()" style="margin-bottom:15px">+ إضافة مادة</button>
+
+    <!-- WIP -->
+    <div class="section-title">WORK IN PROGRESS</div>
+    <table class="data-table" id="wipTable">
+      <thead>
+        <tr>
+          <th>Description</th><th>الوحدة</th><th>العدد</th><th>Date Started</th>
+          <th>Duration</th><th>Completed</th><th>Quantity or %</th><th class="no-print"></th>
+        </tr>
+      </thead>
+      <tbody id="wipBody"></tbody>
+    </table>
+    <button class="btn no-print" onclick="addWipRow()" style="margin-bottom:15px">+ إضافة بند أعمال</button>
+
+    <!-- Signatures (Hidden on small mobile to save space, can be restored if needed) -->
+    <div style="margin-top:30px;display:grid;grid-template-columns:1fr 1fr;gap:15px;font-size:12px;" class="no-print">
+      <div>
+        <p style="font-weight:bold;margin-bottom:15px">Contractor's PM Signature:</p>
+        <p style="margin-bottom:15px">Signature: ______________</p>
+        <p>Date: ______________</p>
+      </div>
+      <div>
+        <p style="font-weight:bold;margin-bottom:15px">The Engineer representative (PMO):</p>
+        <p style="margin-bottom:15px">Signature: ______________</p>
+        <p>Date: ______________</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="action-bar no-print">
+  <button class="btn btn-danger" onclick="if(confirm('هل أنت متأكد من المسح؟')) location.reload()"><i data-lucide="trash-2"></i> <span>مسح</span></button>
+  <button class="btn" onclick="exportExcel()"><i data-lucide="file-spreadsheet"></i> <span>Excel</span></button>
+  <button class="btn" onclick="exportPdf()"><i data-lucide="file-down"></i> <span>PDF</span></button>
+  <button class="btn btn-accent" onclick="submitReport()"><i data-lucide="send"></i> <span>إرسال</span></button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase, ref, set, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDDHwYOfLPK1MLdzZwgukCpxFvaxwnHjLs",
+  authDomain: "bloom-store-28c12.firebaseapp.com",
+  databaseURL: "https://bloom-store-28c12-default-rtdb.firebaseio.com",
+  projectId: "bloom-store-28c12",
+  storageBucket: "bloom-store-28c12.firebasestorage.app",
+  messagingSenderId: "482044642196",
+  appId: "1:482044642196:web:37858a63194372ed59c581"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+let currentUser = null;
+
+const uid = (p="RPT") => `${p}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,6)}`;
+const num = (v) => isNaN(Number(v)) ? 0 : Number(v);
+function toast(msg, err=false) {
+  const d = document.createElement("div");
+  d.className = `toast ${err ? 'toast-err' : ''}`;
+  d.textContent = msg;
+  document.body.appendChild(d);
+  setTimeout(() => d.remove(), 3000);
+}
+
+signInAnonymously(auth).catch(e => console.warn("Auth failed:", e.code));
+onAuthStateChanged(auth, (user) => {
+  currentUser = user;
+  document.getElementById("connText").textContent = user ? "جاهز للإرسال" : "غير متصل";
+});
+
+document.getElementById("reportId").value = uid("DR");
+flatpickr("#reportDate", { locale: "ar", dateFormat: "d/m/Y", defaultDate: new Date(), onChange: function(_, dateStr) {
+  const days = ["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+  document.getElementById("reportDay").value = days[new Date().getDay()];
+}});
+document.getElementById("reportDay").value = ["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"][new Date().getDay()];
+
+// ===== Row Generators =====
+function addManpowerRow() {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td data-label="Discipline"><input placeholder="تخصص..." /></td>
+    <td data-label="No."><input type="number" class="mp-no" value="0" /></td>
+    <td data-label="Time"><input placeholder="وقت..." /></td>
+    <td data-label="Total"><input type="number" class="mp-total" value="0" readonly style="background:#f1f5f9;font-weight:bold" /></td>
+    <td class="no-print"><button class="row-remove" onclick="this.closest('tr').remove()">×</button></td>
+  `;
+  tr.querySelector(".mp-no").addEventListener("input", (e) => {
+    tr.querySelector(".mp-total").value = num(e.target.value);
+  });
+  document.getElementById("manpowerBody").appendChild(tr);
+}
+
+function addEquipmentRow() {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td data-label="Description"><input placeholder="وصف..." /></td>
+    <td data-label="Capa."><input placeholder="سعة..." /></td>
+    <td data-label="Working"><input type="number" class="eq-work" value="0" /></td>
+    <td data-label="Duration"><input type="number" class="eq-dur" value="0" /></td>
+    <td data-label="Total"><input type="number" class="eq-total" value="0" readonly style="background:#f1f5f9;font-weight:bold" /></td>
+    <td class="no-print"><button class="row-remove" onclick="this.closest('tr').remove()">×</button></td>
+  `;
+  const calc = () => {
+    tr.querySelector(".eq-total").value = num(tr.querySelector(".eq-work").value) + num(tr.querySelector(".eq-dur").value);
+  };
+  tr.querySelector(".eq-work").addEventListener("input", calc);
+  tr.querySelector(".eq-dur").addEventListener("input", calc);
+  document.getElementById("equipmentBody").appendChild(tr);
+}
+
+function addMaterialRow() {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td data-label="Description"><input placeholder="وصف..." /></td>
+    <td data-label="Quantity"><input type="number" value="0" /></td>
+    <td data-label="Unit"><input placeholder="وحدة..." /></td>
+    <td data-label="Origin"><input placeholder="منشأ..." /></td>
+    <td class="no-print"><button class="row-remove" onclick="this.closest('tr').remove()">×</button></td>
+  `;
+  document.getElementById("materialsBody").appendChild(tr);
+}
+
+function addWipRow() {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td data-label="Description"><input placeholder="وصف..." /></td>
+    <td data-label="الوحدة"><input placeholder="م2..." /></td>
+    <td data-label="العدد"><input type="number" value="0" /></td>
+    <td data-label="Date Started"><input type="date" /></td>
+    <td data-label="Duration"><input type="number" value="0" /></td>
+    <td data-label="Completed"><input type="number" value="0" /></td>
+    <td data-label="Quantity or %"><input placeholder="100%" /></td>
+    <td class="no-print"><button class="row-remove" onclick="this.closest('tr').remove()">×</button></td>
+  `;
+  document.getElementById("wipBody").appendChild(tr);
+}
+
+addManpowerRow(); addEquipmentRow(); addMaterialRow(); addWipRow();
+
+function collectData() {
+  const mp = [];
+  document.querySelectorAll("#manpowerBody tr").forEach(tr => {
+    const i = tr.querySelectorAll("input");
+    if(i[0].value) mp.push({ role: i[0].value, count: num(i[1].value), time: i[2].value, total: num(i[3].value) });
+  });
+  const eq = [];
+  document.querySelectorAll("#equipmentBody tr").forEach(tr => {
+    const i = tr.querySelectorAll("input");
+    if(i[0].value) eq.push({ desc: i[0].value, capacity: i[1].value, work: num(i[2].value), duration: num(i[3].value), total: num(i[4].value) });
+  });
+  const mt = [];
+  document.querySelectorAll("#materialsBody tr").forEach(tr => {
+    const i = tr.querySelectorAll("input");
+    if(i[0].value) mt.push({ desc: i[0].value, qty: num(i[1].value), unit: i[2].value, origin: i[3].value });
+  });
+  const wip = [];
+  document.querySelectorAll("#wipBody tr").forEach(tr => {
+    const i = tr.querySelectorAll("input");
+    if(i[0].value) wip.push({ desc: i[0].value, unit: i[1].value, count: num(i[2].value), start: i[3].value, duration: num(i[4].value), completed: num(i[5].value), percent: i[6].value });
+  });
+  return {
+    reportId: document.getElementById("reportId").value, workPackage: document.getElementById("workPackage").value,
+    contract: document.getElementById("contractName").value, contractor: document.getElementById("contractor").value,
+    to: document.getElementById("toWhom").value, date: document.getElementById("reportDate").value,
+    day: document.getElementById("reportDay").value,
+    weather: { sky: document.getElementById("weatherSky").value, temp: document.getElementById("weatherTemp").value, wind: document.getElementById("weatherWind").value },
+    manpower: mp, equipment: eq, materials: mt, wip: wip,
+    status: "مرسل", reviewStatus: "قيد المراجعة", submittedAt: Date.now(),
+    senderUid: currentUser ? currentUser.uid : "anon"
+  };
+}
+
+window.submitReport = async () => {
+  const data = collectData();
+  if (!data.workPackage) { toast("يرجى إدخال اسم حزمة العمل", true); return; }
+  try {
+    await set(ref(db, `dailyReports/${data.reportId}`), data);
+    await push(ref(db, "notifications"), { type: "new_report", reportId: data.reportId, createdAt: serverTimestamp(), read: false });
+    Swal.fire("نجاح", "تم إرسال التقرير بنجاح", "success");
+    setTimeout(() => location.reload(), 1500);
+  } catch (e) {
+    toast("فشل الإرسال، تحقق من الاتصال", true);
+  }
+};
+
+window.exportPdf = () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+  const data = collectData();
+
+  doc.setFontSize(16); doc.setFont("helvetica", "bold");
+  doc.text("1032 SQUARE MALL", 105, 20, { align: "center" });
+  doc.setFontSize(12); doc.text("DAILY REPORT", 105, 28, { align: "center" });
+  doc.setFontSize(10); doc.text(`DR NO: ${data.reportId}`, 180, 20); doc.text(`DATE: ${data.date}`, 180, 26);
+
+  doc.autoTable({ startY: 35, body: [["WORK PACKAGE:", data.workPackage||""], ["CONTRACT:", data.contract||""], ["CONTRACTOR:", data.contractor||""], ["To:", data.to||""]], theme: "grid", styles: { fontSize: 9 }, columnStyles: { 0: { fontStyle: "bold", fillColor: [241, 245, 249], cellWidth: 40 } } });
+  doc.autoTable({ startY: doc.lastAutoTable.finalY + 5, head: [["Sky", "Temp. o C", "Wind"]], body: [[data.weather.sky, data.weather.temp, data.weather.wind]], theme: "grid", headStyles: { fillColor: [250, 204, 21], textColor: [0,0,0] } });
+  doc.autoTable({ startY: doc.lastAutoTable.finalY + 8, head: [["Discipline", "Contractor No.", "Time", "Total"]], body: data.manpower.map(m => [m.role, m.count, m.time, m.total]), theme: "grid", headStyles: { fillColor: [250, 204, 21], textColor: [0,0,0] } });
+  doc.autoTable({ startY: doc.lastAutoTable.finalY + 8, head: [["Description", "Capa.", "Working", "Duration", "Total"]], body: data.equipment.map(e => [e.desc, e.capacity, e.work, e.duration, e.total]), theme: "grid", headStyles: { fillColor: [250, 204, 21], textColor: [0,0,0] } });
+  doc.autoTable({ startY: doc.lastAutoTable.finalY + 8, head: [["Description", "Quantity", "Unit", "Origin"]], body: data.materials.map(m => [m.desc, m.qty, m.unit, m.origin]), theme: "grid", headStyles: { fillColor: [250, 204, 21], textColor: [0,0,0] } });
+  doc.autoTable({ startY: doc.lastAutoTable.finalY + 8, head: [["Description", "الوحدة", "العدد", "Date Started", "Duration", "Completed", "Quantity or %"]], body: data.wip.map(w => [w.desc, w.unit, w.count, w.start, w.duration, w.completed, w.percent]), theme: "grid", headStyles: { fillColor: [250, 204, 21], textColor: [0,0,0] } });
+
+  doc.save(`${data.reportId}.pdf`);
+};
+
+window.exportExcel = () => {
+  const data = collectData();
+  const wsData = [
+    ["1032 SQUARE MALL"], ["DAILY REPORT"],
+    ["DR NO:", data.reportId, "", "DATE:", data.date],
+    ["WORK PACKAGE:", data.workPackage], ["CONTRACT:", data.contract], ["CONTRACTOR:", data.contractor], ["To:", data.to],
+    [], ["WEATHER"], ["Sky", data.weather.sky, "Temp", data.weather.temp, "Wind", data.weather.wind],
+    [], ["MANPOWER"], ["Discipline", "No.", "Time", "Total"], ...data.manpower.map(m => [m.role, m.count, m.time, m.total]),
+    [], ["EQUIPMENT"], ["Description", "Capa.", "Working", "Duration", "Total"], ...data.equipment.map(e => [e.desc, e.capacity, e.work, e.duration, e.total]),
+    [], ["MATERIALS"], ["Description", "Quantity", "Unit", "Origin"], ...data.materials.map(m => [m.desc, m.qty, m.unit, m.origin]),
+    [], ["WORK IN PROGRESS"], ["Description", "الوحدة", "العدد", "Date Started", "Duration", "Completed", "Quantity or %"], ...data.wip.map(w => [w.desc, w.unit, w.count, w.start, w.duration, w.completed, w.percent])
+  ];
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(wsData), "Report"); XLSX.writeFile(wb, `${data.reportId}.xlsx`);
+};
+
+window.addManpowerRow = addManpowerRow; window.addEquipmentRow = addEquipmentRow; window.addMaterialRow = addMaterialRow; window.addWipRow = addWipRow;
+</script>
+</body>
+</html>
