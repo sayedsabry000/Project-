@@ -8,6 +8,8 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<!-- Google Identity Services Library -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{--primary:#1a5276;--primary-light:#2874a6;--accent:#1abc9c;--dark:#2c3e50;--gray:#6c757d;--light:#f4f6f8;--border:#dee2e6;--pr:#8e44ad;--pr-light:#a569bd;}
 *{font-family:'Segoe UI',Tahoma,sans-serif;box-sizing:border-box;}
@@ -128,8 +130,8 @@ body{background:var(--light);margin:0;}
 .msg-actions button{background:transparent;border:none;cursor:pointer;padding:5px 8px;border-radius:50%;font-size:16px;transition:.2s;line-height:1;}
 .msg-actions button:hover{background:#f4f6f8;transform:scale(1.2);}
 .chat-input{background:#fff;padding:10px 20px;display:flex;gap:10px;align-items:flex-end;box-shadow:0 -2px 12px rgba(0,0,0,.08);flex-shrink:0;}
-.chat-input .emoji-btn{background:transparent;border:none;font-size:24px;cursor:pointer;padding:8px;border-radius:50%;transition:.2s;}
-.chat-input .emoji-btn:hover{background:#f4f6f8;transform:scale(1.15);}
+.chat-input .emoji-btn,.chat-input .attach-btn{background:transparent;border:none;font-size:22px;cursor:pointer;padding:8px;border-radius:50%;transition:.2s;color:#555;}
+.chat-input .emoji-btn:hover,.chat-input .attach-btn:hover{background:#f4f6f8;transform:scale(1.15);}
 .chat-input textarea{flex:1;border:1px solid #e0e0e0;border-radius:22px;padding:11px 18px;font-size:14px;resize:none;max-height:120px;min-height:44px;outline:none;transition:.2s;font-family:inherit;}
 .chat-input textarea:focus{border-color:#1a5276;box-shadow:0 0 0 3px rgba(26,82,118,.1);}
 .chat-input .send-btn{width:48px;height:48px;border-radius:50%;background:#1a5276;color:#fff;border:none;font-size:18px;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -148,6 +150,12 @@ body{background:var(--light);margin:0;}
 .empty-chat{text-align:center;padding:60px 20px;color:#8b7e74;}
 .empty-chat .icon{font-size:80px;opacity:.3;margin-bottom:16px;}
 .empty-chat h4{font-weight:700;color:#6c757d;margin-bottom:8px;}
+
+/* Drive Attachments styling */
+.attachment-card{border:1px solid #ddd;border-radius:8px;padding:8px 12px;background:#f9f9f9;margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.attachment-card img{max-width:100%;max-height:180px;border-radius:6px;margin-top:4px;display:block;}
+.attachment-info{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:#333;}
+
 @media(max-width:768px){.main{padding:16px;}.topbar{padding:10px 14px;}.tabs-bar{padding:0 10px;top:56px;}.tab-btn{padding:12px 14px;font-size:13px;}.chat-area{padding:12px;}.msg-bubble{max-width:85%;}.emoji-picker{right:10px;width:260px;}.main.chat-mode{height:calc(100vh - 116px);}}
 </style>
 </head>
@@ -156,13 +164,14 @@ body{background:var(--light);margin:0;}
 <div class="spinner-overlay" id="globalSpinner">
   <div class="text-center">
     <div class="spinner-border text-primary" style="width:3rem;height:3rem;"></div>
-    <p class="mt-3 text-muted">جاري التحميل...</p>
+    <p class="mt-3 text-muted" id="spinnerText">جاري التحميل...</p>
   </div>
 </div>
 
 <div class="topbar">
   <div class="brand"><i class="fas fa-tools"></i> MIR/PR System — المُرسِل</div>
   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <button id="googleAuthBtn" class="btn btn-sm btn-outline-danger" onclick="MIR.initDriveAuth()"><i class="fab fa-google-drive me-1"></i> ربط Google Drive</button>
     <span class="tag"><i class="fas fa-tools me-1"></i> مقاول / مهندس موقع</span>
     <span class="tag" style="background:#198754;"><span class="live-dot"></span> متصل</span>
     <a href="index.html" class="btn btn-sm btn-outline-secondary"><i class="fas fa-home"></i></a>
@@ -218,12 +227,104 @@ try {
   console.log('✅ Firebase initialized');
 } catch(err) { console.error('❌ Firebase init error:', err); }
 
+/* ============ Google Drive API Setup ============ */
+const GOOGLE_CLIENT_ID = '826984299769-ikv5ik2eje5e72tfd75cr41k4kmtn320.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+let tokenClient;
+let accessToken = null;
+
+function initGoogleDriveAuth(callback) {
+  if (accessToken) {
+    if (callback) callback();
+    return;
+  }
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: SCOPES,
+    callback: (response) => {
+      if (response.error !== undefined) {
+        throw (response);
+      }
+      accessToken = response.access_token;
+      console.log('✅ Google Drive Authenticated');
+      const authBtn = $('#googleAuthBtn');
+      if (authBtn) {
+        authBtn.classList.remove('btn-outline-danger');
+        authBtn.classList.add('btn-success');
+        authBtn.innerHTML = `<i class="fab fa-google-drive me-1"></i> Google Drive متصل`;
+      }
+      toast('تم ربط حساب Google Drive بنجاح ✅');
+      if (callback) callback();
+    },
+  });
+  tokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+async function uploadFileToGoogleDrive(file) {
+  return new Promise((resolve, reject) => {
+    if (!accessToken) {
+      initGoogleDriveAuth(() => {
+        uploadFileToGoogleDrive(file).then(resolve).catch(reject);
+      });
+      return;
+    }
+
+    const metadata = {
+      name: file.name,
+      mimeType: file.type
+    };
+
+    const formData = new FormData();
+    formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    formData.append('file', file);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webContentLink,webViewLink');
+    xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        const res = JSON.parse(xhr.responseText);
+        // جعل الملف قابلًا للقراءة من قِبل الجميع
+        makeDriveFilePublic(res.id);
+        resolve({
+          id: res.id,
+          name: file.name,
+          mimeType: file.type,
+          size: file.size,
+          url: `https://drive.google.com/uc?id=${res.id}&export=download`,
+          viewUrl: res.webViewLink
+        });
+      } else {
+        reject('فشل الرفع إلى Drive: ' + xhr.responseText);
+      }
+    };
+
+    xhr.onerror = () => reject('حدث خطأ في الشبكة أثناء الرفع');
+    xhr.send(formData);
+  });
+}
+
+function makeDriveFilePublic(fileId) {
+  fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + accessToken,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      role: 'reader',
+      type: 'anyone'
+    })
+  });
+}
+
 const ROLE = 'contractor';
 
 const state = {
   tab: 'dashboard',
-  type: 'MIR',           // ← 'MIR' أو 'PR'
-  editingId: null,       // ID للـ MIR أو PR
+  type: 'MIR',
+  editingId: null,
   mirList: [],
   prList: [],
   projects: [],
@@ -234,7 +335,8 @@ const state = {
   chatEditingId: null,
   chatUnsubscribe: null,
   chatLastSeen: Number(localStorage.getItem('chatLastSeen_contractor')||0),
-  isSubmitting: false
+  isSubmitting: false,
+  formAttachments: []
 };
 
 const STATUS_COLORS = {
@@ -275,7 +377,10 @@ const fmtDay = (d)=>{
   if(date.toDateString()===yesterday.toDateString()) return 'أمس';
   return date.toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
 };
-const showSpinner = (on)=> $('#globalSpinner').classList.toggle('active', on);
+const showSpinner = (on, text="جاري التحميل...")=> {
+  $('#spinnerText').textContent = text;
+  $('#globalSpinner').classList.toggle('active', on);
+};
 const toast = (m, icon='success')=> Swal.fire({toast:true,position:'top-end',icon,title:m,showConfirmButton:false,timer:2600,timerProgressBar:true});
 const confirmBox = (title,text='')=> Swal.fire({title,text,icon:'warning',showCancelButton:true,confirmButtonText:'نعم',cancelButtonText:'إلغاء',confirmButtonColor:'#1a5276'});
 const statusBadge = (s)=> `<span class="badge bg-${STATUS_COLORS[s]||'secondary'} status-badge">${esc(s)}</span>`;
@@ -295,9 +400,6 @@ function getCurrentList(){
 }
 function getCurrentPath(){
   return state.type === 'MIR' ? 'mir' : 'pr';
-}
-function getNextPath(){
-  return state.type === 'MIR' ? 'mirCounters' : 'prCounters';
 }
 
 /* ============ Next Number ============ */
@@ -491,22 +593,44 @@ function listenChat(callback){
   }, (err)=>console.error('chat listen error:', err));
 }
 
-async function sendChatMessage(){
+async function sendChatMessage(fileAttachment=null){
   const input = $('#msgInput');
-  const text = input.value.trim();
-  if(!text) return;
+  const text = input ? input.value.trim() : '';
+  if(!text && !fileAttachment) return;
   if(state.chatEditingId) return saveChatEdit(text);
   try {
     const newRef = push(dbRef(rtdb,'chat/messages'));
-    await dbSet(newRef, {
+    const msgPayload = {
       text, role: ROLE, createdAt: Date.now(),
       reactions: {}, edited: false, deleted: false
-    });
-    input.value = '';
-    input.style.height = 'auto';
+    };
+    if (fileAttachment) {
+      msgPayload.file = fileAttachment;
+    }
+    await dbSet(newRef, msgPayload);
+    if(input) {
+      input.value = '';
+      input.style.height = 'auto';
+    }
     updateSendButton();
     scrollChatToBottom();
   } catch(e){ console.error(e); }
+}
+
+async function uploadChatFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  showSpinner(true, "جاري رفع الملف إلى Google Drive...");
+  try {
+    const driveFile = await uploadFileToGoogleDrive(file);
+    showSpinner(false);
+    toast('تم رفع الملف بنجاح ✅');
+    sendChatMessage(driveFile);
+  } catch (err) {
+    showSpinner(false);
+    console.error(err);
+    toast('حدث خطأ أثناء رفع الملف إلى Google Drive', 'error');
+  }
 }
 
 function startChatEdit(msgId){
@@ -796,6 +920,9 @@ async function renderCreate(mc, editId=null){
   if(editId){
     const snap = await dbGet(dbRef(rtdb,`${path}/${editId}`));
     record = snap.exists()? {id:editId,...snap.val()} : null;
+    state.formAttachments = record?.attachments || [];
+  } else {
+    state.formAttachments = [];
   }
   const type = state.type;
   const number = record?.[type === 'MIR' ? 'mirNumber' : 'prNumber'] || await nextNumber();
@@ -825,7 +952,6 @@ async function renderCreate(mc, editId=null){
 
 /* ============ MIR Form ============ */
 function mirFormHtml(record, number){
-  const items = record?.items?.length ? record.items : [{desc:'',qty:'',loc:'',date:''}];
   return `
     <div class="form-section">
       <h6><i class="fas fa-info-circle me-2"></i>بيانات MIR</h6>
@@ -882,6 +1008,17 @@ function mirFormHtml(record, number){
     </div>
 
     <div class="form-section">
+      <h6><i class="fab fa-google-drive me-2"></i>الملفات والمرفقات (Google Drive)</h6>
+      <div class="mb-3">
+        <input type="file" id="formFileInput" class="d-none" multiple onchange="MIR.uploadFormFile(event)">
+        <button type="button" class="btn btn-outline-primary" onclick="$('#formFileInput').click()">
+          <i class="fas fa-paperclip me-1"></i> رفع ملفات/صور إلى Google Drive
+        </button>
+      </div>
+      <div id="attachmentsContainer" class="d-flex flex-wrap gap-2"></div>
+    </div>
+
+    <div class="form-section">
       <h6><i class="fas fa-comment me-2"></i>تعليقات المقاول</h6>
       <textarea class="form-control" id="recordComments" rows="3">${esc(record?.contractorComments||'')}</textarea>
     </div>
@@ -890,7 +1027,6 @@ function mirFormHtml(record, number){
 
 /* ============ PR Form ============ */
 function prFormHtml(record, number){
-  const items = record?.items?.length ? record.items : [{code:'',desc:'',qty:'',unit:'',date:'',price:'',remarks:''}];
   return `
     <div class="form-section">
       <h6><i class="fas fa-info-circle me-2"></i>بيانات PR</h6>
@@ -961,6 +1097,17 @@ function prFormHtml(record, number){
     </div>
 
     <div class="form-section">
+      <h6><i class="fab fa-google-drive me-2"></i>الملفات والمرفقات (Google Drive)</h6>
+      <div class="mb-3">
+        <input type="file" id="formFileInput" class="d-none" multiple onchange="MIR.uploadFormFile(event)">
+        <button type="button" class="btn btn-outline-primary" onclick="$('#formFileInput').click()">
+          <i class="fas fa-paperclip me-1"></i> رفع ملفات/صور إلى Google Drive
+        </button>
+      </div>
+      <div id="attachmentsContainer" class="d-flex flex-wrap gap-2"></div>
+    </div>
+
+    <div class="form-section">
       <h6><i class="fas fa-comment me-2"></i>تعليمات خاصة + تعليقات</h6>
       <textarea class="form-control mb-2" id="recordSpecial" rows="2" placeholder="Special ordering instructions...">${esc(record?.specialInstructions||'')}</textarea>
       <textarea class="form-control" id="recordComments" rows="2" placeholder="تعليقات المقاول...">${esc(record?.contractorComments||'')}</textarea>
@@ -968,12 +1115,50 @@ function prFormHtml(record, number){
   `;
 }
 
+async function uploadFormFile(e) {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+
+  showSpinner(true, "جاري رفع المرفقات إلى Google Drive...");
+  try {
+    for (const f of files) {
+      const driveFile = await uploadFileToGoogleDrive(f);
+      state.formAttachments.push(driveFile);
+    }
+    showSpinner(false);
+    toast('تم رفع المرفقات بنجاح ✅');
+    renderAttachmentsList();
+  } catch(err) {
+    showSpinner(false);
+    console.error(err);
+    toast('حدث خطأ أثناء رفع الملفات', 'error');
+  }
+}
+
+function renderAttachmentsList() {
+  const container = $('#attachmentsContainer');
+  if (!container) return;
+  container.innerHTML = state.formAttachments.map((att, idx) => `
+    <div class="attachment-card">
+      <i class="fas ${att.mimeType?.includes('image') ? 'fa-image text-success' : 'fa-file text-primary'}"></i>
+      <a href="${att.url}" target="_blank" class="attachment-info">${esc(att.name)}</a>
+      <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="MIR.removeAttachment(${idx})"><i class="fas fa-times"></i></button>
+    </div>
+  `).join('');
+}
+
+function removeAttachment(idx) {
+  state.formAttachments.splice(idx, 1);
+  renderAttachmentsList();
+}
+
 /* ============ Bind Form ============ */
 function bindForm(record, editId){
   const itemsBody = $('#itemsBody');
   const type = state.type;
 
-  // Items collection
+  renderAttachmentsList();
+
   function collectItems(){
     if(type === 'MIR'){
       return $$('tr',itemsBody).map((tr,i)=>({
@@ -997,7 +1182,6 @@ function bindForm(record, editId){
     }
   }
 
-  // Render rows
   function renderItems(arr){
     if(type === 'MIR'){
       itemsBody.innerHTML = arr.map((it,i)=>`
@@ -1042,7 +1226,6 @@ function bindForm(record, editId){
     renderItems(cur);
   };
 
-  // Auto-fill project fields
   $('#projectSel')?.addEventListener('change', (e)=>{
     const opt = e.target.options[e.target.selectedIndex];
     if(opt.value){
@@ -1053,7 +1236,6 @@ function bindForm(record, editId){
     }
   });
 
-  // Build payload
   const buildPayload = (status)=>{
     const sel = $('#projectSel');
     const p = state.projects.find(x=>x.id===sel.value);
@@ -1067,7 +1249,8 @@ function bindForm(record, editId){
       date: $('#recordDate').value||'',
       projectManager: ($('#recordPM')?.value||'').trim(),
       contractorComments: ($('#recordComments').value||'').trim(),
-      items: collectItems()
+      items: collectItems(),
+      attachments: state.formAttachments
     };
     if(type === 'MIR'){
       base.mirNumber = $('#mirNumber').value||'';
@@ -1085,17 +1268,14 @@ function bindForm(record, editId){
       base.reqPhone = ($('#recordReqPhone').value||'').trim();
       base.reqEmail = ($('#recordReqEmail').value||'').trim();
       base.specialInstructions = ($('#recordSpecial').value||'').trim();
-      // وصف مختصر
       const firstItem = base.items[0]?.desc||'';
       base.itemDescription = firstItem;
     }
     return base;
   };
 
-  // Save draft
   $('#saveDraftBtn').onclick = async ()=>{
     if(state.isSubmitting) return;
-    // Validation
     if(type === 'MIR' && !$('#recordDesc').value.trim()) return toast('أدخل وصف المواد','warning');
     if(type === 'PR' && !collectItems().some(i=>i.desc)) return toast('أدخل بند واحد على الأقل','warning');
     if(!$('#projectSel').value) return toast('اختر المشروع','warning');
@@ -1118,7 +1298,6 @@ function bindForm(record, editId){
     }
   };
 
-  // Submit
   $('#submitBtn').onclick = async ()=>{
     if(state.isSubmitting) return;
     if(!$('#recordForm').checkValidity()){ $('#recordForm').reportValidity(); return; }
@@ -1300,6 +1479,16 @@ async function renderReview(mc, id){
               }</tr>`).join('')}
             </tbody>
           </table>
+          <hr>
+          <h6>المرفقات على Google Drive</h6>
+          <div class="d-flex flex-wrap gap-2">
+            ${(record.attachments||[]).map(att => `
+              <div class="attachment-card">
+                <i class="fas ${att.mimeType?.includes('image') ? 'fa-image text-success' : 'fa-file text-primary'}"></i>
+                <a href="${att.url}" target="_blank" class="attachment-info">${esc(att.name)}</a>
+              </div>
+            `).join('') || '<small class="text-muted">لا توجد مرفقات</small>'}
+          </div>
         </div>
       </div>
       <div class="col-lg-4">
@@ -1344,6 +1533,8 @@ function renderChat(mc){
         <div class="grid" id="emojiGrid"></div>
       </div>
       <div class="chat-input">
+        <input type="file" id="chatFileInput" class="d-none" onchange="MIR.uploadChatFile(event)">
+        <button class="attach-btn" onclick="$('#chatFileInput').click()" title="إرفاق صورة أو ملف Google Drive"><i class="fas fa-paperclip"></i></button>
         <button class="emoji-btn" onclick="MIR.toggleEmoji(event)">😊</button>
         <textarea id="msgInput" placeholder="اكتب رسالة..." rows="1"></textarea>
         <button class="send-btn" id="sendBtn" onclick="MIR.sendChat()" disabled>
@@ -1402,9 +1593,22 @@ function renderChatMessage(m){
       <span class="reaction-badge ${myReaction===emoji?'mine':''}" onclick="MIR.reactChat('${m.id}','${emoji}')">${emoji} ${count}</span>
     `).join('')}</div>`;
   }
+
+  let fileContentHtml = '';
+  if(m.file) {
+    if(m.file.mimeType?.includes('image')) {
+      fileContentHtml = `<div class="mt-2"><img src="${m.file.url}" alt="${esc(m.file.name)}" loading="lazy"><a href="${m.file.url}" target="_blank" class="d-block text-muted mt-1" style="font-size:11px;"><i class="fas fa-external-link-alt"></i> فتح عبر Google Drive</a></div>`;
+    } else {
+      fileContentHtml = `<div class="attachment-card mt-2">
+        <i class="fas fa-file-alt text-primary"></i>
+        <a href="${m.file.url}" target="_blank" class="attachment-info">${esc(m.file.name)}</a>
+      </div>`;
+    }
+  }
+
   let textHtml = '';
   if(isDeleted) textHtml = `<div class="msg-text deleted"><i class="fas fa-ban"></i> تم حذف هذه الرسالة</div>`;
-  else textHtml = `<div class="msg-text ${m.edited?'edited':''}">${esc(m.text)}</div>`;
+  else textHtml = `<div class="msg-text ${m.edited?'edited':''}">${esc(m.text)}</div>${fileContentHtml}`;
   let actionsHtml = '';
   if(!isDeleted){
     actionsHtml = `<div class="msg-actions">
@@ -1784,7 +1988,11 @@ window.MIR = {
   reactChat,
   clearAllChat,
   toggleEmoji: toggleEmojiPicker,
-  insertEmoji
+  insertEmoji,
+  initDriveAuth: initGoogleDriveAuth,
+  uploadChatFile,
+  uploadFormFile,
+  removeAttachment
 };
 
 /* ============ INIT ============ */
