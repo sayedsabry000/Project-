@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIR/PR — المُرسِل (المقاول)</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+<link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<style>
+:root{--primary:#1a5276;--primary-light:#2874a6;--accent:#1abc9c;--dark:#2c3e50;--gray:#6c757d;--light:#f4f6f8;--border:#dee2e6;--pr:#8e44ad;--pr-light:#a569bd;}
+*{font-family:'Segoe UI',Tahoma,sans-serif;box-sizing:border-box;}
+body{background:var(--light);margin:0;}
+
+.topbar{background:#fff;padding:14px 24px;box-shadow:0 2px 8px rgba(0,0,0,.05);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px;}
+.topbar .brand{display:flex;align-items:center;gap:12px;font-weight:700;color:var(--primary);font-size:18px;}
+.topbar .tag{background:#2874a6;color:#fff;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;}
+
+.tabs-bar{background:#fff;border-bottom:2px solid var(--border);display:flex;gap:4px;padding:0 24px;position:sticky;top:64px;z-index:99;overflow-x:auto;}
+.tab-btn{background:transparent;border:none;padding:14px 22px;color:var(--gray);font-weight:600;font-size:15px;cursor:pointer;border-bottom:3px solid transparent;transition:.2s;display:flex;align-items:center;gap:8px;white-space:nowrap;position:relative;}
+.tab-btn:hover{color:var(--primary);background:rgba(26,82,118,.05);}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary);background:rgba(26,82,118,.06);}
+.tab-btn i{font-size:16px;}
+.chat-badge{background:#dc3545;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-right:4px;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+
+/* Switch MIR/PR */
+.type-switch{display:flex;gap:8px;background:#fff;padding:6px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:20px;max-width:400px;}
+.type-switch button{flex:1;padding:12px;border:none;background:transparent;border-radius:8px;cursor:pointer;font-weight:700;font-size:15px;color:#6c757d;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.type-switch button.active[data-type="MIR"]{background:linear-gradient(135deg,#1a5276,#2874a6);color:#fff;box-shadow:0 4px 12px rgba(26,82,118,.3);}
+.type-switch button.active[data-type="PR"]{background:linear-gradient(135deg,#8e44ad,#a569bd);color:#fff;box-shadow:0 4px 12px rgba(142,68,173,.3);}
+
+.main{max-width:1400px;margin:0 auto;padding:24px;}
+.main.chat-mode{padding:0;max-width:none;height:calc(100vh - 130px);display:flex;flex-direction:column;}
+
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px;}
+.stat-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.04);border-right:4px solid var(--primary);cursor:pointer;transition:.3s;}
+.stat-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.1);}
+.stat-card .icon{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;margin-bottom:12px;}
+.stat-card .value{font-size:28px;font-weight:800;color:var(--dark);}
+.stat-card .label{color:var(--gray);font-size:13px;font-weight:500;}
+.c-draft{border-right-color:#6c757d!important;} .c-draft .icon{background:#6c757d;}
+.c-submitted{border-right-color:#0dcaf0!important;} .c-submitted .icon{background:#0dcaf0;}
+.c-review{border-right-color:#ffc107!important;} .c-review .icon{background:#ffc107;}
+.c-approved{border-right-color:#198754!important;} .c-approved .icon{background:#198754;}
+.c-rejected{border-right-color:#dc3545!important;} .c-rejected .icon{background:#dc3545;}
+.c-revision{border-right-color:#fd7e14!important;} .c-revision .icon{background:#fd7e14;}
+.c-total{border-right-color:#1a5276!important;} .c-total .icon{background:#1a5276;}
+
+.panel{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:20px;}
+.form-section{background:#fff;border-radius:12px;padding:24px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.form-section h6{color:var(--primary);font-weight:700;padding-bottom:12px;border-bottom:2px solid var(--light);margin-bottom:20px;}
+.form-label{font-weight:600;font-size:13px;color:var(--dark);}
+.form-control:focus,.form-select:focus{border-color:var(--primary);box-shadow:0 0 0 .2rem rgba(26,82,118,.15);}
+.btn-primary{background:var(--primary);border-color:var(--primary);}
+.btn-primary:hover{background:var(--primary-light);border-color:var(--primary-light);}
+.btn-accent{background:var(--accent);border-color:var(--accent);color:#fff;}
+.btn-accent:hover{background:#16a085;color:#fff;}
+.btn-pr{background:var(--pr);border-color:var(--pr);color:#fff;}
+.btn-pr:hover{background:var(--pr-light);border-color:var(--pr-light);color:#fff;}
+.items-table input{font-size:13px;padding:6px 8px;}
+.status-badge{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;}
+.timeline{position:relative;padding-right:30px;}
+.timeline::before{content:'';position:absolute;right:10px;top:0;bottom:0;width:2px;background:var(--border);}
+.timeline-item{position:relative;margin-bottom:20px;}
+.timeline-item::before{content:'';position:absolute;right:-24px;top:4px;width:14px;height:14px;border-radius:50%;background:var(--primary);border:3px solid #fff;box-shadow:0 0 0 2px var(--border);}
+.timeline-item .time{font-size:12px;color:var(--gray);}
+.timeline-item .action{font-weight:600;color:var(--dark);font-size:14px;}
+.timeline-item .by{font-size:12px;color:var(--gray);}
+.spinner-overlay{position:fixed;inset:0;background:rgba(255,255,255,.9);display:none;align-items:center;justify-content:center;z-index:9999;}
+.spinner-overlay.active{display:flex;}
+.live-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#198754;margin-left:6px;animation:pulse 2s infinite;}
+
+.action-btns{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
+.action-btns .btn{padding:4px 9px;font-size:12px;border-radius:6px;transition:.2s;}
+.action-btns .btn:hover{transform:translateY(-2px);box-shadow:0 3px 8px rgba(0,0,0,.15);}
+
+.projects-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+.project-card{background:#fff;border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,.04);border-right:4px solid var(--accent);transition:.3s;position:relative;}
+.project-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.1);}
+.project-card .proj-name{font-weight:700;color:var(--dark);font-size:15px;margin-bottom:8px;}
+.project-card .proj-code{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.project-card .proj-info{font-size:12px;color:var(--gray);line-height:1.7;}
+.project-card .proj-info strong{color:var(--dark);}
+.project-card .del-proj{position:absolute;top:10px;left:10px;background:transparent;border:none;color:#dc3545;cursor:pointer;font-size:14px;opacity:.5;transition:.2s;}
+.project-card .del-proj:hover{opacity:1;transform:scale(1.2);}
+
+.chat-container{flex:1;display:flex;flex-direction:column;background:#e5ddd5;background-image:radial-gradient(circle at 25% 25%, rgba(255,255,255,.4) 1px, transparent 1px),radial-gradient(circle at 75% 75%, rgba(255,255,255,.3) 1px, transparent 1px);background-size:40px 40px, 60px 60px;overflow:hidden;position:relative;}
+.chat-header{background:linear-gradient(135deg,#1a5276,#2874a6);color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.15);flex-shrink:0;}
+.chat-header .info{display:flex;align-items:center;gap:12px;}
+.chat-header .avatar{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid rgba(255,255,255,.5);}
+.chat-header .name{font-weight:700;font-size:15px;}
+.chat-header .status{font-size:12px;opacity:.9;display:flex;align-items:center;gap:6px;margin-top:2px;}
+.chat-header .online-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;animation:pulse 1.5s infinite;}
+.chat-header .actions{display:flex;gap:8px;}
+.chat-header .actions button{background:rgba(255,255,255,.15);border:none;color:#fff;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:.2s;}
+.chat-header .actions button:hover{background:rgba(255,255,255,.3);transform:scale(1.08);}
+.chat-area{flex:1;overflow-y:auto;padding:16px 20px;scroll-behavior:smooth;}
+.chat-area::-webkit-scrollbar{width:8px;}
+.chat-area::-webkit-scrollbar-thumb{background:rgba(0,0,0,.2);border-radius:4px;}
+.date-separator{text-align:center;margin:14px 0;}
+.date-separator span{background:rgba(255,255,255,.9);padding:5px 14px;border-radius:12px;font-size:12px;color:#6c757d;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.msg-wrapper{display:flex;margin-bottom:8px;animation:msgIn .3s ease-out;}
+@keyframes msgIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.msg-wrapper.sent{justify-content:flex-end;}
+.msg-wrapper.received{justify-content:flex-start;}
+.msg-bubble{max-width:70%;background:#fff;padding:8px 12px 6px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.1);position:relative;word-wrap:break-word;transition:.3s;}
+.msg-wrapper.sent .msg-bubble{background:#dcf8c6;border-top-left-radius:12px;border-top-right-radius:4px;}
+.msg-wrapper.received .msg-bubble{border-top-left-radius:4px;border-top-right-radius:12px;}
+.msg-bubble:hover{box-shadow:0 2px 8px rgba(0,0,0,.15);}
+.msg-sender{font-size:11px;font-weight:700;color:#1a5276;margin-bottom:3px;}
+.msg-text{font-size:14px;color:#2c3e50;line-height:1.5;white-space:pre-wrap;word-break:break-word;}
+.msg-text.deleted{font-style:italic;color:#999;}
+.msg-text.edited::after{content:' (مُعدّلة)';font-size:10px;color:#999;font-style:italic;}
+.msg-meta{display:flex;justify-content:flex-end;align-items:center;gap:4px;font-size:10px;color:#999;margin-top:2px;}
+.msg-meta .read-tick{color:#53bdeb;}
+.msg-reactions{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;}
+.reaction-badge{background:rgba(255,255,255,.9);border:1px solid #ddd;border-radius:10px;padding:2px 8px;font-size:12px;cursor:pointer;transition:.2s;animation:popIn .2s;}
+.reaction-badge:hover{transform:scale(1.1);}
+.reaction-badge.mine{background:#e8f5f1;border-color:#16a085;}
+@keyframes popIn{from{transform:scale(0);}to{transform:scale(1);}}
+.msg-actions{position:absolute;top:5px;background:#fff;border-radius:20px;box-shadow:0 3px 12px rgba(0,0,0,.15);padding:4px;display:none;gap:2px;z-index:10;animation:fadeIn .2s;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.msg-wrapper.sent .msg-actions{right:100%;margin-right:8px;}
+.msg-wrapper.received .msg-actions{left:100%;margin-left:8px;}
+.msg-bubble:hover .msg-actions{display:flex;}
+.msg-actions button{background:transparent;border:none;cursor:pointer;padding:5px 8px;border-radius:50%;font-size:16px;transition:.2s;line-height:1;}
+.msg-actions button:hover{background:#f4f6f8;transform:scale(1.2);}
+.chat-input{background:#fff;padding:10px 20px;display:flex;gap:10px;align-items:flex-end;box-shadow:0 -2px 12px rgba(0,0,0,.08);flex-shrink:0;}
+.chat-input .emoji-btn{background:transparent;border:none;font-size:24px;cursor:pointer;padding:8px;border-radius:50%;transition:.2s;}
+.chat-input .emoji-btn:hover{background:#f4f6f8;transform:scale(1.15);}
+.chat-input textarea{flex:1;border:1px solid #e0e0e0;border-radius:22px;padding:11px 18px;font-size:14px;resize:none;max-height:120px;min-height:44px;outline:none;transition:.2s;font-family:inherit;}
+.chat-input textarea:focus{border-color:#1a5276;box-shadow:0 0 0 3px rgba(26,82,118,.1);}
+.chat-input .send-btn{width:48px;height:48px;border-radius:50%;background:#1a5276;color:#fff;border:none;font-size:18px;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.chat-input .send-btn:hover{background:#2874a6;transform:scale(1.05);box-shadow:0 4px 12px rgba(26,82,118,.4);}
+.chat-input .send-btn:disabled{background:#ccc;cursor:not-allowed;transform:none;box-shadow:none;}
+.edit-banner{background:#fef3c7;padding:8px 20px;display:none;align-items:center;justify-content:space-between;font-size:13px;color:#92400e;border-top:1px solid #fbbf24;}
+.edit-banner.active{display:flex;}
+.edit-banner button{background:transparent;border:none;color:#92400e;font-size:18px;cursor:pointer;}
+.emoji-picker{position:absolute;bottom:80px;right:20px;background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.2);padding:12px;display:none;width:280px;z-index:200;animation:slideUp .25s;}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.emoji-picker.active{display:block;}
+.emoji-picker .title{font-size:12px;color:#6c757d;padding:4px 8px;font-weight:600;}
+.emoji-picker .grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;max-height:220px;overflow-y:auto;}
+.emoji-picker .grid button{background:transparent;border:none;font-size:22px;cursor:pointer;padding:5px;border-radius:8px;transition:.15s;line-height:1;}
+.emoji-picker .grid button:hover{background:#f4f6f8;transform:scale(1.25);}
+.empty-chat{text-align:center;padding:60px 20px;color:#8b7e74;}
+.empty-chat .icon{font-size:80px;opacity:.3;margin-bottom:16px;}
+.empty-chat h4{font-weight:700;color:#6c757d;margin-bottom:8px;}
+@media(max-width:768px){.main{padding:16px;}.topbar{padding:10px 14px;}.tabs-bar{padding:0 10px;top:56px;}.tab-btn{padding:12px 14px;font-size:13px;}.chat-area{padding:12px;}.msg-bubble{max-width:85%;}.emoji-picker{right:10px;width:260px;}.main.chat-mode{height:calc(100vh - 116px);}}
+</style>
+</head>
+<body>
+
+<div class="spinner-overlay" id="globalSpinner">
+  <div class="text-center">
+    <div class="spinner-border text-primary" style="width:3rem;height:3rem;"></div>
+    <p class="mt-3 text-muted">جاري التحميل...</p>
+  </div>
+</div>
+
+<div class="topbar">
+  <div class="brand"><i class="fas fa-tools"></i> MIR/PR System — المُرسِل</div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <span class="tag"><i class="fas fa-tools me-1"></i> مقاول / مهندس موقع</span>
+    <span class="tag" style="background:#198754;"><span class="live-dot"></span> متصل</span>
+    <a href="index.html" class="btn btn-sm btn-outline-secondary"><i class="fas fa-home"></i></a>
+  </div>
+</div>
+
+<div class="tabs-bar">
+  <button class="tab-btn active" data-tab="dashboard" onclick="MIR.switchTab('dashboard')">
+    <i class="fas fa-tachometer-alt"></i> لوحة التحكم
+  </button>
+  <button class="tab-btn" data-tab="projects" onclick="MIR.switchTab('projects')">
+    <i class="fas fa-building"></i> المشاريع
+  </button>
+  <button class="tab-btn" data-tab="create" onclick="MIR.switchTab('create')">
+    <i class="fas fa-plus-circle"></i> إنشاء جديد
+  </button>
+  <button class="tab-btn" data-tab="list" onclick="MIR.switchTab('list')">
+    <i class="fas fa-list"></i> كل الطلبات
+  </button>
+  <button class="tab-btn" data-tab="chat" onclick="MIR.switchTab('chat')">
+    <i class="fas fa-comments"></i> المراسلة <span class="chat-badge" id="chatBadge" style="display:none;">0</span>
+  </button>
+</div>
+
+<div class="main" id="app"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+
+<script type="module">
+/* ============ Firebase ============ */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref as dbRef, set as dbSet, get as dbGet, update as dbUpdate, remove as dbRemove, push, onValue }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDDHwYOfLPK1MLdzZwgukCpxFvaxwnHjLs",
+  authDomain: "bloom-store-28c12.firebaseapp.com",
+  databaseURL: "https://bloom-store-28c12-default-rtdb.firebaseio.com",
+  projectId: "bloom-store-28c12",
+  storageBucket: "bloom-store-28c12.firebasestorage.app",
+  messagingSenderId: "482044642196",
+  appId: "1:482044642196:web:37858a63194372ed59c581"
+};
+
+let rtdb;
+try {
+  const app = initializeApp(firebaseConfig);
+  rtdb = getDatabase(app);
+  console.log('✅ Firebase initialized');
+} catch(err) { console.error('❌ Firebase init error:', err); }
+
+const ROLE = 'contractor';
+
+const state = {
+  tab: 'dashboard',
+  type: 'MIR',           // ← 'MIR' أو 'PR'
+  editingId: null,       // ID للـ MIR أو PR
+  mirList: [],
+  prList: [],
+  projects: [],
+  unsubscribeMir: null,
+  unsubscribePr: null,
+  unsubProjects: null,
+  chatMessages: [],
+  chatEditingId: null,
+  chatUnsubscribe: null,
+  chatLastSeen: Number(localStorage.getItem('chatLastSeen_contractor')||0),
+  isSubmitting: false
+};
+
+const STATUS_COLORS = {
+  'Draft':'secondary','Submitted':'info','Under Review':'warning',
+  'Approved':'success','Approved with Comments':'success',
+  'Rejected':'danger','Revision Required':'warning','Closed':'dark'
+};
+const ACTION_CODES = {
+  'A':{d:'Approved / معتمد'},
+  'B':{d:'Approved with notes / معتمد بملاحظات'},
+  'C':{d:'Rejected / مرفوض'},
+  'F':{d:'For info / للعلم'}
+};
+
+const EMOJIS = [
+  '😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰',
+  '😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏',
+  '😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠',
+  '👍','👎','👌','✌️','🤞','🤝','👏','🙌','🙏','💪','👋','🤚','✋','🖐️','👊','✊',
+  '❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','❣️','💕','💞','💓','💗','💖','💘',
+  '🔥','⭐','✨','💫','⚡','💥','🎉','🎊','🎁','🎈','🏆','🥇','🎯','💯','✅','❌'
+];
+
+/* ============ Helpers ============ */
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+const esc = (s)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDate = (d)=>{ if(!d) return '-'; return new Date(d).toLocaleDateString('en-GB'); };
+const fmtDateTime = (d)=>{ if(!d) return '-'; return new Date(d).toLocaleString('en-GB'); };
+const fmtTime = (d)=>{ if(!d) return ''; return new Date(d).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); };
+const fmtDay = (d)=>{
+  if(!d) return '';
+  const date = new Date(d);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate()-1);
+  if(date.toDateString()===today.toDateString()) return 'اليوم';
+  if(date.toDateString()===yesterday.toDateString()) return 'أمس';
+  return date.toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
+};
+const showSpinner = (on)=> $('#globalSpinner').classList.toggle('active', on);
+const toast = (m, icon='success')=> Swal.fire({toast:true,position:'top-end',icon,title:m,showConfirmButton:false,timer:2600,timerProgressBar:true});
+const confirmBox = (title,text='')=> Swal.fire({title,text,icon:'warning',showCancelButton:true,confirmButtonText:'نعم',cancelButtonText:'إلغاء',confirmButtonColor:'#1a5276'});
+const statusBadge = (s)=> `<span class="badge bg-${STATUS_COLORS[s]||'secondary'} status-badge">${esc(s)}</span>`;
+
+function cleanData(data){
+  try {
+    return JSON.parse(JSON.stringify(data, (key, value) => {
+      if (value === undefined) return null;
+      return value;
+    }));
+  } catch(e){ return data; }
+}
+
+/* ============ Get current list ============ */
+function getCurrentList(){
+  return state.type === 'MIR' ? state.mirList : state.prList;
+}
+function getCurrentPath(){
+  return state.type === 'MIR' ? 'mir' : 'pr';
+}
+function getNextPath(){
+  return state.type === 'MIR' ? 'mirCounters' : 'prCounters';
+}
+
+/* ============ Next Number ============ */
+async function nextNumber(){
+  try {
+    const year = new Date().getFullYear();
+    const prefix = state.type === 'MIR' ? 'MIR' : 'PR';
+    const snap = await dbGet(dbRef(rtdb,getCurrentPath()));
+    let maxSeq = 0;
+    if(snap.exists()){
+      Object.values(snap.val()).forEach(m=>{
+        const num = m[prefix === 'MIR' ? 'mirNumber' : 'prNumber'] || '';
+        const match = num.match(new RegExp(prefix+'-'+(year)+'-(\\d+)'));
+        if(match) maxSeq = Math.max(maxSeq, Number(match[1]));
+      });
+    }
+    return `${prefix}-${year}-${String(maxSeq+1).padStart(4,'0')}`;
+  } catch(e){
+    const prefix = state.type === 'MIR' ? 'MIR' : 'PR';
+    return `${prefix}-${new Date().getFullYear()}-0001`;
+  }
+}
+
+/* ============ Save Record ============ */
+async function saveRecord(data, id=null){
+  const cleanPayload = cleanData(data);
+  const payload = { ...cleanPayload, type: state.type, updatedAt: Date.now() };
+  const path = getCurrentPath();
+
+  if(id){
+    await dbUpdate(dbRef(rtdb,`${path}/${id}`), payload);
+    return id;
+  }
+  payload.createdAt = Date.now();
+  const newRef = push(dbRef(rtdb,path));
+  await dbSet(newRef, payload);
+  return newRef.key;
+}
+
+/* ============ Listen MIR + PR ============ */
+function listenMir(callback){
+  if(state.unsubscribeMir) state.unsubscribeMir();
+  state.unsubscribeMir = onValue(dbRef(rtdb,'mir'), (snap)=>{
+    const data = snap.exists() ? snap.val() : {};
+    state.mirList = Object.entries(data).map(([id,v])=>({id,...v}))
+      .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    callback();
+  }, (err)=>console.error(err));
+}
+function listenPr(callback){
+  if(state.unsubscribePr) state.unsubscribePr();
+  state.unsubscribePr = onValue(dbRef(rtdb,'pr'), (snap)=>{
+    const data = snap.exists() ? snap.val() : {};
+    state.prList = Object.entries(data).map(([id,v])=>({id,...v}))
+      .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    callback();
+  }, (err)=>console.error(err));
+}
+
+/* ============ History ============ */
+async function addHistory(id, action){
+  try {
+    if(!id) return;
+    const path = getCurrentPath();
+    const newRef = push(dbRef(rtdb,`${path}History/${id}`));
+    await dbSet(newRef, { action: String(action||''), by: ROLE, at: Date.now() });
+  } catch(e){ console.warn('history save failed:', e); }
+}
+async function getHistory(id){
+  try {
+    const path = getCurrentPath();
+    const snap = await dbGet(dbRef(rtdb,`${path}History/${id}`));
+    return snap.exists() ? Object.entries(snap.val()).map(([id,v])=>({id,...v})).sort((a,b)=>a.at-b.at) : [];
+  } catch(e){ return []; }
+}
+
+/* ============ Delete / Clear ============ */
+async function deleteRecord(id){
+  const path = getCurrentPath();
+  const label = state.type === 'MIR' ? 'طلب MIR' : 'طلب PR';
+  const conf = await Swal.fire({
+    title: `حذف ${label}؟`,
+    text: 'لا يمكن استرجاعه بعد الحذف',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: '<i class="fas fa-trash"></i> نعم، احذف',
+    cancelButtonText: 'إلغاء',
+    confirmButtonColor: '#dc3545'
+  });
+  if(!conf.isConfirmed) return;
+
+  try { await dbRemove(dbRef(rtdb,`${path}/${id}`)); } catch(e){ console.warn(e); }
+  try { await dbRemove(dbRef(rtdb,`${path}History/${id}`)); } catch(e){ console.warn(e); }
+
+  Swal.fire({icon:'success',title:'تم الحذف بنجاح ✅',timer:1800,showConfirmButton:false,timerProgressBar:true});
+  state.tab = 'list';
+  render();
+}
+
+async function clearAll(){
+  const path = getCurrentPath();
+  const label = state.type === 'MIR' ? 'كل طلبات MIR' : 'كل طلبات PR';
+  const conf = await Swal.fire({
+    title: `حذف ${label}؟`,
+    text: 'سيتم المسح نهائيًا',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'نعم، احذف الكل',
+    cancelButtonText: 'إلغاء',
+    confirmButtonColor: '#dc3545'
+  });
+  if(!conf.isConfirmed) return;
+
+  try { await dbRemove(dbRef(rtdb,path)); } catch(e){ console.warn(e); }
+  try { await dbRemove(dbRef(rtdb,`${path}History`)); } catch(e){ console.warn(e); }
+
+  Swal.fire({icon:'success',title:'تم الحذف بنجاح ✅',timer:1800,showConfirmButton:false,timerProgressBar:true});
+  state.tab = 'dashboard';
+  render();
+}
+
+/* ============ Projects ============ */
+function listenProjects(callback){
+  if(state.unsubProjects) state.unsubProjects();
+  state.unsubProjects = onValue(dbRef(rtdb,'projects'), (snap)=>{
+    const data = snap.exists() ? snap.val() : {};
+    state.projects = Object.entries(data).map(([id,v])=>({id,...v}))
+      .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    callback();
+  }, (err)=>console.error('projects listen error:', err));
+}
+
+async function loadProjects(){
+  const snap = await dbGet(dbRef(rtdb,'projects'));
+  state.projects = snap.exists() ? Object.entries(snap.val()).map(([id,v])=>({id,...v})) : [];
+  return state.projects;
+}
+
+async function addProject(data){
+  const newRef = push(dbRef(rtdb,'projects'));
+  const project = cleanData({
+    name: String(data.name||'').trim(),
+    code: String(data.code||'').trim(),
+    wbs: String(data.wbs||'').trim(),
+    contractNo: String(data.contractNo||'').trim(),
+    contract: String(data.contract||'').trim(),
+    contractor: String(data.contractor||'').trim(),
+    createdAt: Date.now()
+  });
+  await dbSet(newRef, project);
+  return newRef.key;
+}
+
+async function deleteProject(projectId){
+  const conf = await Swal.fire({
+    title:'حذف المشروع؟',
+    text:'سيتم حذف المشروع من القائمة',
+    icon:'warning', showCancelButton:true,
+    confirmButtonText:'نعم، احذف', cancelButtonText:'إلغاء',
+    confirmButtonColor:'#dc3545'
+  });
+  if(!conf.isConfirmed) return;
+  try { await dbRemove(dbRef(rtdb,`projects/${projectId}`)); } catch(e){ console.warn(e); }
+  Swal.fire({icon:'success',title:'تم الحذف بنجاح ✅',timer:1800,showConfirmButton:false,timerProgressBar:true});
+}
+
+/* ============ Chat Functions ============ */
+function listenChat(callback){
+  if(state.chatUnsubscribe) state.chatUnsubscribe();
+  state.chatUnsubscribe = onValue(dbRef(rtdb,'chat/messages'), (snap)=>{
+    const data = snap.exists() ? snap.val() : {};
+    state.chatMessages = Object.entries(data).map(([id,v])=>({id,...v}))
+      .sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+    callback();
+
+    if(state.tab !== 'chat'){
+      const unread = state.chatMessages.filter(m=>
+        m.role !== ROLE && (m.createdAt||0) > state.chatLastSeen
+      ).length;
+      const badge = $('#chatBadge');
+      if(badge){
+        badge.style.display = unread>0 ? 'inline-block' : 'none';
+        badge.textContent = unread;
+      }
+    } else {
+      state.chatLastSeen = Date.now();
+      localStorage.setItem('chatLastSeen_contractor', Date.now());
+      const badge = $('#chatBadge');
+      if(badge) badge.style.display = 'none';
+    }
+  }, (err)=>console.error('chat listen error:', err));
+}
+
+async function sendChatMessage(){
+  const input = $('#msgInput');
+  const text = input.value.trim();
+  if(!text) return;
+  if(state.chatEditingId) return saveChatEdit(text);
+  try {
+    const newRef = push(dbRef(rtdb,'chat/messages'));
+    await dbSet(newRef, {
+      text, role: ROLE, createdAt: Date.now(),
+      reactions: {}, edited: false, deleted: false
+    });
+    input.value = '';
+    input.style.height = 'auto';
+    updateSendButton();
+    scrollChatToBottom();
+  } catch(e){ console.error(e); }
+}
+
+function startChatEdit(msgId){
+  const msg = state.chatMessages.find(m=>m.id===msgId);
+  if(!msg) return;
+  if(msg.role !== ROLE) return toast('يمكنك تعديل رسائلك فقط','warning');
+  state.chatEditingId = msgId;
+  $('#msgInput').value = msg.text;
+  $('#msgInput').focus();
+  $('#editBanner').classList.add('active');
+  updateSendButton();
+}
+
+async function saveChatEdit(newText){
+  if(!state.chatEditingId) return;
+  try {
+    await dbUpdate(dbRef(rtdb,`chat/messages/${state.chatEditingId}`), {
+      text: newText, edited: true, editedAt: Date.now()
+    });
+    toast('تم تعديل الرسالة ✏️');
+    cancelChatEdit();
+  } catch(e){ console.error(e); }
+}
+
+function cancelChatEdit(){
+  state.chatEditingId = null;
+  const inp = $('#msgInput');
+  if(inp){ inp.value=''; inp.style.height='auto'; }
+  const banner = $('#editBanner');
+  if(banner) banner.classList.remove('active');
+  updateSendButton();
+}
+
+async function deleteChatMsg(msgId){
+  const msg = state.chatMessages.find(m=>m.id===msgId);
+  if(!msg) return;
+  if(msg.role !== ROLE) return toast('يمكنك حذف رسائلك فقط','warning');
+  const conf = await Swal.fire({
+    title:'حذف الرسالة؟', text:'لا يمكن استرجاعها', icon:'warning',
+    showCancelButton:true, confirmButtonText:'نعم احذف', cancelButtonText:'إلغاء',
+    confirmButtonColor:'#dc3545'
+  });
+  if(!conf.isConfirmed) return;
+  try {
+    await dbUpdate(dbRef(rtdb,`chat/messages/${msgId}`), {
+      deleted:true, text:'', deletedAt: Date.now()
+    });
+    toast('تم حذف الرسالة 🗑️');
+  } catch(e){ console.error(e); }
+}
+
+async function reactChat(msgId, emoji){
+  try {
+    const msg = state.chatMessages.find(m=>m.id===msgId);
+    if(!msg) return;
+    const reactions = msg.reactions || {};
+    if(reactions[ROLE] === emoji){ delete reactions[ROLE]; }
+    else { reactions[ROLE] = emoji; }
+    await dbUpdate(dbRef(rtdb,`chat/messages/${msgId}`), { reactions });
+  } catch(e){ console.error(e); }
+}
+
+async function clearAllChat(){
+  const conf = await Swal.fire({
+    title:'حذف كل الرسائل؟', text:'سيتم مسح المحادثة بالكامل',
+    icon:'warning', showCancelButton:true,
+    confirmButtonText:'نعم احذف الكل', cancelButtonText:'إلغاء',
+    confirmButtonColor:'#dc3545'
+  });
+  if(!conf.isConfirmed) return;
+  try { await dbRemove(dbRef(rtdb,'chat/messages')); } catch(e){ console.warn(e); }
+  Swal.fire({icon:'success',title:'تم الحذف بنجاح ✅',timer:1800,showConfirmButton:false,timerProgressBar:true});
+}
+
+function scrollChatToBottom(){
+  const area = $('#chatArea');
+  if(area) setTimeout(()=>{ area.scrollTop = area.scrollHeight; }, 50);
+}
+
+function updateSendButton(){
+  const input = $('#msgInput');
+  const btn = $('#sendBtn');
+  if(input && btn) btn.disabled = !input.value.trim();
+}
+
+function toggleEmojiPicker(e){
+  if(e) e.stopPropagation();
+  const p = $('#emojiPicker');
+  if(p) p.classList.toggle('active');
+}
+
+function insertEmoji(emoji){
+  const input = $('#msgInput');
+  if(!input) return;
+  input.value += emoji;
+  input.focus();
+  updateSendButton();
+}
+
+/* ============ Type Switch ============ */
+function switchType(type){
+  state.type = type;
+  state.editingId = null;
+  state.tab = 'create';
+  render();
+}
+
+/* ============ Render ============ */
+function render(){
+  const mc = $('#app');
+  $$('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===state.tab));
+  if(state.tab === 'chat'){ mc.classList.add('chat-mode'); }
+  else { mc.classList.remove('chat-mode'); }
+
+  if(state.tab==='dashboard') renderDashboard(mc);
+  else if(state.tab==='projects') renderProjects(mc);
+  else if(state.tab==='create') renderCreate(mc);
+  else if(state.tab==='edit') renderCreate(mc, state.editingId);
+  else if(state.tab==='list') renderList(mc);
+  else if(state.tab==='review') renderReview(mc, state.editingId);
+  else if(state.tab==='chat') renderChat(mc);
+}
+
+/* ============ Type Switch Bar ============ */
+function typeSwitchHtml(){
+  return `
+    <div class="type-switch">
+      <button data-type="MIR" class="${state.type==='MIR'?'active':''}" onclick="MIR.switchType('MIR')">
+        <i class="fas fa-clipboard-check"></i> MIR
+      </button>
+      <button data-type="PR" class="${state.type==='PR'?'active':''}" onclick="MIR.switchType('PR')">
+        <i class="fas fa-shopping-cart"></i> PR
+      </button>
+    </div>
+  `;
+}
+
+/* ============ Dashboard ============ */
+function renderDashboard(mc){
+  const mirs = state.mirList;
+  const prs = state.prList;
+  const mirCounts = {Draft:0,Submitted:0,'Under Review':0,'Approved':0,'Approved with Comments':0,Rejected:0,'Revision Required':0};
+  const prCounts = {Draft:0,Submitted:0,'Under Review':0,'Approved':0,'Approved with Comments':0,Rejected:0,'Revision Required':0};
+  mirs.forEach(m=>mirCounts[m.status]=(mirCounts[m.status]||0)+1);
+  prs.forEach(m=>prCounts[m.status]=(prCounts[m.status]||0)+1);
+
+  const type = state.type;
+  const currentList = type === 'MIR' ? mirs : prs;
+  const currentCounts = type === 'MIR' ? mirCounts : prCounts;
+
+  const stats = [
+    {k:'total', l:'إجمالي الطلبات', v:currentList.length, i:'fa-file-alt', c:'c-total'},
+    {k:'Draft', l:'مسودة', v:currentCounts['Draft'], i:'fa-pen', c:'c-draft'},
+    {k:'Submitted', l:'مُرسل', v:currentCounts['Submitted'], i:'fa-paper-plane', c:'c-submitted'},
+    {k:'Under Review', l:'تحت المراجعة', v:currentCounts['Under Review'], i:'fa-search', c:'c-review'},
+    {k:'Approved', l:'معتمد', v:currentCounts['Approved']+currentCounts['Approved with Comments'], i:'fa-check', c:'c-approved'},
+    {k:'Rejected', l:'مرفوض', v:currentCounts['Rejected'], i:'fa-times', c:'c-rejected'},
+    {k:'Revision Required', l:'يحتاج تعديل', v:currentCounts['Revision Required'], i:'fa-redo', c:'c-revision'}
+  ];
+
+  mc.innerHTML = `
+    ${typeSwitchHtml()}
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <div>
+        <h4 class="mb-0 fw-bold">لوحة تحكم المُرسِل — ${type}</h4>
+        <small class="text-muted">MIR: ${mirs.length} | PR: ${prs.length}</small>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        ${currentList.length>0?`<button class="btn btn-outline-danger" onclick="MIR.clearAll()"><i class="fas fa-trash-alt me-1"></i> حذف الكل</button>`:''}
+        <button class="btn btn-primary" onclick="MIR.switchTab('create')"><i class="fas fa-plus me-2"></i>طلب ${type} جديد</button>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      ${stats.map(s=>`<div class="stat-card ${s.c}" onclick="MIR.switchTab('list')">
+        <div class="icon"><i class="fas ${s.i}"></i></div>
+        <div class="value">${s.v}</div><div class="label">${s.l}</div>
+      </div>`).join('')}
+    </div>
+
+    <div class="panel">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h5 class="mb-0"><i class="fas fa-clock me-2"></i>آخر 5 طلبات (${type})</h5>
+        <button class="btn btn-sm btn-outline-primary" onclick="MIR.switchTab('list')">عرض الكل</button>
+      </div>
+      ${currentList.length===0 ? `
+        <div class="text-center p-5">
+          <i class="fas fa-inbox" style="font-size:60px;color:#ccc;"></i>
+          <h5 class="mt-3 text-muted">لا توجد طلبات ${type} بعد</h5>
+          <button class="btn btn-primary mt-2" onclick="MIR.switchTab('create')"><i class="fas fa-plus me-2"></i>إنشاء أول ${type}</button>
+        </div>
+      ` : `
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead><tr>
+              <th>${type} No.</th><th>Project</th><th>Description</th>
+              <th>Date</th><th>Status</th><th style="width:210px;">Actions</th>
+            </tr></thead>
+            <tbody>
+              ${currentList.slice(0,5).map(m=>`<tr>
+                <td><strong>${esc(m[type === 'MIR' ? 'mirNumber' : 'prNumber'] || '-')}</strong></td>
+                <td>${esc(m.projectName||'-')}</td>
+                <td>${esc((m.itemDescription || m.materialGeneralDescription || '').slice(0,40))}</td>
+                <td>${fmtDate(m.date||m.createdAt)}</td>
+                <td>${statusBadge(m.status)}</td>
+                <td>
+                  <div class="action-btns">
+                    <button class="btn btn-sm btn-outline-primary" onclick="MIR.view('${m.id}')"><i class="fas fa-eye"></i></button>
+                    <button class="btn btn-sm btn-outline-warning" onclick="MIR.edit('${m.id}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="MIR.deleteRecord('${m.id}')"><i class="fas fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      `}
+    </div>
+  `;
+}
+
+/* ============ List ============ */
+function renderList(mc){
+  const list = getCurrentList();
+  const type = state.type;
+  const numField = type === 'MIR' ? 'mirNumber' : 'prNumber';
+
+  mc.innerHTML = `
+    ${typeSwitchHtml()}
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <div>
+        <h4 class="mb-0 fw-bold">كل طلبات ${type}</h4>
+        <small class="text-muted">${list.length} طلب</small>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        ${list.length>0?`<button class="btn btn-outline-danger" onclick="MIR.clearAll()"><i class="fas fa-trash-alt me-1"></i> حذف الكل</button>`:''}
+        <button class="btn btn-primary" onclick="MIR.switchTab('create')"><i class="fas fa-plus me-2"></i>طلب ${type} جديد</button>
+      </div>
+    </div>
+    <div class="panel">
+      ${list.length===0 ? '<p class="text-center text-muted p-4">لا توجد طلبات</p>' : `
+        <div class="table-responsive">
+          <table class="table table-hover" id="dataTable">
+            <thead><tr>
+              <th>${type} No.</th><th>Project</th><th>Contractor</th>
+              <th>Description</th><th>Date</th><th>Status</th>
+              <th style="width:240px;">Actions</th>
+            </tr></thead>
+            <tbody>
+              ${list.map(m=>`<tr>
+                <td><strong>${esc(m[numField]||'-')}</strong></td>
+                <td>${esc(m.projectName||'-')}</td>
+                <td>${esc(m.contractor||'-')}</td>
+                <td>${esc((m.itemDescription || m.materialGeneralDescription || '').slice(0,40))}</td>
+                <td>${fmtDate(m.date||m.createdAt)}</td>
+                <td>${statusBadge(m.status)}</td>
+                <td>
+                  <div class="action-btns">
+                    <button class="btn btn-sm btn-outline-primary" onclick="MIR.view('${m.id}')"><i class="fas fa-eye"></i></button>
+                    <button class="btn btn-sm btn-outline-warning" onclick="MIR.edit('${m.id}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="MIR.pdf('${m.id}')"><i class="fas fa-file-pdf"></i></button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="MIR.deleteRecord('${m.id}')"><i class="fas fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      `}
+    </div>
+  `;
+  if($.fn.DataTable.isDataTable('#dataTable')) $('#dataTable').DataTable().destroy();
+  if(list.length>0){
+    $('#dataTable').DataTable({
+      order:[[4,'desc']],
+      columnDefs:[{orderable:false, targets:[6]}],
+      language:{search:'بحث:', lengthMenu:'عرض _MENU_', info:'عرض _START_ إلى _END_ من _TOTAL_', paginate:{next:'التالي',previous:'السابق'}, zeroRecords:'لا توجد بيانات'}
+    });
+  }
+}
+
+/* ============ Create / Edit ============ */
+async function renderCreate(mc, editId=null){
+  await loadProjects();
+  let record = null;
+  const path = getCurrentPath();
+  if(editId){
+    const snap = await dbGet(dbRef(rtdb,`${path}/${editId}`));
+    record = snap.exists()? {id:editId,...snap.val()} : null;
+  }
+  const type = state.type;
+  const number = record?.[type === 'MIR' ? 'mirNumber' : 'prNumber'] || await nextNumber();
+
+  mc.innerHTML = `
+    ${typeSwitchHtml()}
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <div>
+        <h4 class="fw-bold mb-0">${record?'✏️ تعديل':'➕ إنشاء'} ${type} ${record?'':'جديد'}</h4>
+        <small class="text-muted">${record?esc(number):'املأ البيانات ثم أرسل'}</small>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <button class="btn btn-outline-secondary" onclick="MIR.switchTab('dashboard')">إلغاء</button>
+        <button class="btn btn-outline-primary" id="saveDraftBtn"><i class="fas fa-save me-1"></i> حفظ مسودة</button>
+        <button class="btn ${type==='MIR'?'btn-accent':'btn-pr'}" id="submitBtn"><i class="fas fa-paper-plane me-1"></i> إرسال ${type}</button>
+        ${record?`<button class="btn btn-outline-danger" onclick="MIR.deleteRecord('${record.id}')"><i class="fas fa-trash me-1"></i> حذف</button>`:''}
+      </div>
+    </div>
+
+    <form id="recordForm">
+      ${type === 'MIR' ? mirFormHtml(record, number) : prFormHtml(record, number)}
+    </form>
+  `;
+
+  bindForm(record, editId);
+}
+
+/* ============ MIR Form ============ */
+function mirFormHtml(record, number){
+  const items = record?.items?.length ? record.items : [{desc:'',qty:'',loc:'',date:''}];
+  return `
+    <div class="form-section">
+      <h6><i class="fas fa-info-circle me-2"></i>بيانات MIR</h6>
+      <div class="row g-3">
+        <div class="col-md-4"><label class="form-label">MIR No.</label>
+          <input class="form-control" id="mirNumber" value="${esc(number)}" readonly style="background:#e9ecef;font-weight:700;color:#1a5276;"></div>
+        <div class="col-md-4"><label class="form-label">Date *</label>
+          <input type="date" class="form-control" id="recordDate" value="${record?.date||new Date().toISOString().slice(0,10)}" required></div>
+        <div class="col-md-4"><label class="form-label">Project *</label>
+          <div class="input-group">
+            <select class="form-select" id="projectSel" required>
+              <option value="">اختر المشروع...</option>
+              ${state.projects.map(p=>`<option value="${p.id}" data-name="${esc(p.name)}" data-wbs="${esc(p.wbs||'')}" data-cno="${esc(p.contractNo||'')}" data-contract="${esc(p.contract||'')}" data-contractor="${esc(p.contractor||'')}" ${record?.projectId===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}
+            </select>
+            <button type="button" class="btn btn-outline-primary" onclick="MIR.showAddProject()"><i class="fas fa-plus"></i></button>
+          </div>
+        </div>
+        <div class="col-md-4"><label class="form-label">WBS / Package</label>
+          <input class="form-control" id="recordWbs" value="${esc(record?.wbs||'')}"></div>
+        <div class="col-md-4"><label class="form-label">Contract No.</label>
+          <input class="form-control" id="recordContractNo" value="${esc(record?.contractNo||'')}"></div>
+        <div class="col-md-4"><label class="form-label">Contract</label>
+          <input class="form-control" id="recordContract" value="${esc(record?.contract||'')}"></div>
+        <div class="col-md-4"><label class="form-label">Contractor *</label>
+          <input class="form-control" id="recordContractor" value="${esc(record?.contractor||'')}" required></div>
+        <div class="col-md-4"><label class="form-label">Material Submittal No.</label>
+          <input class="form-control" id="recordSubmittalNo" value="${esc(record?.materialSubmittalNo||'')}"></div>
+        <div class="col-md-4"><label class="form-label">PO No.</label>
+          <input class="form-control" id="recordPoNo" value="${esc(record?.poNo||'')}"></div>
+        <div class="col-md-6"><label class="form-label">To</label>
+          <input class="form-control" id="recordTo" value="${esc(record?.to||'The Engineer / Consultant')}"></div>
+        <div class="col-md-6"><label class="form-label">Project Manager</label>
+          <input class="form-control" id="recordPM" value="${esc(record?.projectManager||'')}"></div>
+        <div class="col-12"><label class="form-label">Material General Description *</label>
+          <textarea class="form-control" id="recordDesc" rows="3" required>${esc(record?.materialGeneralDescription||'')}</textarea></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0"><i class="fas fa-boxes me-2"></i>المواد</h6>
+        <button type="button" class="btn btn-sm btn-primary" id="addItemBtn"><i class="fas fa-plus"></i> إضافة مادة</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table items-table">
+          <thead><tr>
+            <th style="width:50px;">ID</th><th>Item Description</th>
+            <th style="width:110px;">Qty</th><th>Location</th>
+            <th style="width:150px;">Date</th><th style="width:50px;"></th>
+          </tr></thead>
+          <tbody id="itemsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h6><i class="fas fa-comment me-2"></i>تعليقات المقاول</h6>
+      <textarea class="form-control" id="recordComments" rows="3">${esc(record?.contractorComments||'')}</textarea>
+    </div>
+  `;
+}
+
+/* ============ PR Form ============ */
+function prFormHtml(record, number){
+  const items = record?.items?.length ? record.items : [{code:'',desc:'',qty:'',unit:'',date:'',price:'',remarks:''}];
+  return `
+    <div class="form-section">
+      <h6><i class="fas fa-info-circle me-2"></i>بيانات PR</h6>
+      <div class="row g-3">
+        <div class="col-md-4"><label class="form-label">PR No.</label>
+          <input class="form-control" id="prNumber" value="${esc(number)}" readonly style="background:#e9ecef;font-weight:700;color:#8e44ad;"></div>
+        <div class="col-md-4"><label class="form-label">Date *</label>
+          <input type="date" class="form-control" id="recordDate" value="${record?.date||new Date().toISOString().slice(0,10)}" required></div>
+        <div class="col-md-4"><label class="form-label">Project *</label>
+          <div class="input-group">
+            <select class="form-select" id="projectSel" required>
+              <option value="">اختر المشروع...</option>
+              ${state.projects.map(p=>`<option value="${p.id}" data-name="${esc(p.name)}" data-wbs="${esc(p.wbs||'')}" data-cno="${esc(p.contractNo||'')}" data-contract="${esc(p.contract||'')}" data-contractor="${esc(p.contractor||'')}" ${record?.projectId===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}
+            </select>
+            <button type="button" class="btn btn-outline-primary" onclick="MIR.showAddProject()"><i class="fas fa-plus"></i></button>
+          </div>
+        </div>
+        <div class="col-md-4"><label class="form-label">WBS / Package</label>
+          <input class="form-control" id="recordWbs" value="${esc(record?.wbs||'')}"></div>
+        <div class="col-md-4"><label class="form-label">Contract No.</label>
+          <input class="form-control" id="recordContractNo" value="${esc(record?.contractNo||'')}"></div>
+        <div class="col-md-4"><label class="form-label">Contract</label>
+          <input class="form-control" id="recordContract" value="${esc(record?.contract||'')}"></div>
+        <div class="col-md-4"><label class="form-label">Contractor *</label>
+          <input class="form-control" id="recordContractor" value="${esc(record?.contractor||'')}" required></div>
+        <div class="col-md-4"><label class="form-label">Section</label>
+          <input class="form-control" id="recordSection" value="${esc(record?.section||'')}"></div>
+        <div class="col-md-4"><label class="form-label">Work Package</label>
+          <input class="form-control" id="recordWorkPackage" value="${esc(record?.workPackage||'')}"></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h6><i class="fas fa-user-tie me-2"></i>Requested By</h6>
+      <div class="row g-3">
+        <div class="col-md-3"><label class="form-label">Name</label>
+          <input class="form-control" id="recordReqName" value="${esc(record?.reqName||'')}"></div>
+        <div class="col-md-3"><label class="form-label">Position</label>
+          <input class="form-control" id="recordReqPosition" value="${esc(record?.reqPosition||'')}"></div>
+        <div class="col-md-3"><label class="form-label">Phone</label>
+          <input class="form-control" id="recordReqPhone" value="${esc(record?.reqPhone||'')}"></div>
+        <div class="col-md-3"><label class="form-label">Email</label>
+          <input type="email" class="form-control" id="recordReqEmail" value="${esc(record?.reqEmail||'')}"></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0"><i class="fas fa-boxes me-2"></i>البنود</h6>
+        <button type="button" class="btn btn-sm btn-pr" id="addItemBtn"><i class="fas fa-plus"></i> إضافة بند</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table items-table">
+          <thead><tr>
+            <th style="width:40px;">ID</th>
+            <th style="width:90px;">Code</th>
+            <th>Description</th>
+            <th style="width:60px;">Qty</th>
+            <th style="width:70px;">Unit</th>
+            <th style="width:110px;">Delivery</th>
+            <th style="width:100px;">Est. Price</th>
+            <th>Remarks</th>
+            <th style="width:40px;"></th>
+          </tr></thead>
+          <tbody id="itemsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h6><i class="fas fa-comment me-2"></i>تعليمات خاصة + تعليقات</h6>
+      <textarea class="form-control mb-2" id="recordSpecial" rows="2" placeholder="Special ordering instructions...">${esc(record?.specialInstructions||'')}</textarea>
+      <textarea class="form-control" id="recordComments" rows="2" placeholder="تعليقات المقاول...">${esc(record?.contractorComments||'')}</textarea>
+    </div>
+  `;
+}
+
+/* ============ Bind Form ============ */
+function bindForm(record, editId){
+  const itemsBody = $('#itemsBody');
+  const type = state.type;
+
+  // Items collection
+  function collectItems(){
+    if(type === 'MIR'){
+      return $$('tr',itemsBody).map((tr,i)=>({
+        id:i+1,
+        desc: String($('.item-desc',tr).value||'').trim(),
+        qty: String($('.item-qty',tr).value||'').trim(),
+        loc: String($('.item-loc',tr).value||'').trim(),
+        date: String($('.item-date',tr).value||'').trim()
+      }));
+    } else {
+      return $$('tr',itemsBody).map((tr,i)=>({
+        id:i+1,
+        code: String($('.item-code',tr).value||'').trim(),
+        desc: String($('.item-desc',tr).value||'').trim(),
+        qty: String($('.item-qty',tr).value||'').trim(),
+        unit: String($('.item-unit',tr).value||'').trim(),
+        date: String($('.item-date',tr).value||'').trim(),
+        price: String($('.item-price',tr).value||'').trim(),
+        remarks: String($('.item-remarks',tr).value||'').trim()
+      }));
+    }
+  }
+
+  // Render rows
+  function renderItems(arr){
+    if(type === 'MIR'){
+      itemsBody.innerHTML = arr.map((it,i)=>`
+        <tr>
+          <td><input class="form-control form-control-sm item-id" value="${i+1}" readonly style="background:#e9ecef;"></td>
+          <td><input class="form-control form-control-sm item-desc" value="${esc(it.desc||'')}"></td>
+          <td><input class="form-control form-control-sm item-qty" value="${esc(it.qty||'')}"></td>
+          <td><input class="form-control form-control-sm item-loc" value="${esc(it.loc||'')}"></td>
+          <td><input type="date" class="form-control form-control-sm item-date" value="${esc(it.date||'')}"></td>
+          <td><button type="button" class="btn btn-sm btn-outline-danger del-item"><i class="fas fa-trash"></i></button></td>
+        </tr>`).join('');
+    } else {
+      itemsBody.innerHTML = arr.map((it,i)=>`
+        <tr>
+          <td><input class="form-control form-control-sm item-id" value="${i+1}" readonly style="background:#e9ecef;"></td>
+          <td><input class="form-control form-control-sm item-code" value="${esc(it.code||'')}"></td>
+          <td><input class="form-control form-control-sm item-desc" value="${esc(it.desc||'')}"></td>
+          <td><input class="form-control form-control-sm item-qty" value="${esc(it.qty||'')}"></td>
+          <td><input class="form-control form-control-sm item-unit" value="${esc(it.unit||'')}"></td>
+          <td><input type="date" class="form-control form-control-sm item-date" value="${esc(it.date||'')}"></td>
+          <td><input class="form-control form-control-sm item-price" value="${esc(it.price||'')}"></td>
+          <td><input class="form-control form-control-sm item-remarks" value="${esc(it.remarks||'')}"></td>
+          <td><button type="button" class="btn btn-sm btn-outline-danger del-item"><i class="fas fa-trash"></i></button></td>
+        </tr>`).join('');
+    }
+    $$('.del-item',itemsBody).forEach(b=>b.onclick=()=>{
+      if(itemsBody.children.length===1) return toast('يجب وجود بند واحد على الأقل','warning');
+      b.closest('tr').remove();
+      $$('.item-id',itemsBody).forEach((el,i)=>el.value=i+1);
+    });
+  }
+
+  const initialItems = type === 'MIR'
+    ? (record?.items?.length ? record.items : [{desc:'',qty:'',loc:'',date:''}])
+    : (record?.items?.length ? record.items : [{code:'',desc:'',qty:'',unit:'',date:'',price:'',remarks:''}]);
+  renderItems(initialItems);
+
+  $('#addItemBtn').onclick = ()=>{
+    const cur = collectItems();
+    if(type === 'MIR') cur.push({desc:'',qty:'',loc:'',date:''});
+    else cur.push({code:'',desc:'',qty:'',unit:'',date:'',price:'',remarks:''});
+    renderItems(cur);
+  };
+
+  // Auto-fill project fields
+  $('#projectSel')?.addEventListener('change', (e)=>{
+    const opt = e.target.options[e.target.selectedIndex];
+    if(opt.value){
+      $('#recordWbs').value = opt.dataset.wbs||'';
+      $('#recordContractNo').value = opt.dataset.cno||'';
+      $('#recordContract').value = opt.dataset.contract||'';
+      if(!$('#recordContractor').value) $('#recordContractor').value = opt.dataset.contractor||'';
+    }
+  });
+
+  // Build payload
+  const buildPayload = (status)=>{
+    const sel = $('#projectSel');
+    const p = state.projects.find(x=>x.id===sel.value);
+    const base = {
+      type, status,
+      projectId: p?.id||'', projectName: p?.name||'',
+      wbs: ($('#recordWbs').value||'').trim(),
+      contractNo: ($('#recordContractNo').value||'').trim(),
+      contract: ($('#recordContract').value||'').trim(),
+      contractor: ($('#recordContractor').value||'').trim(),
+      date: $('#recordDate').value||'',
+      projectManager: ($('#recordPM')?.value||'').trim(),
+      contractorComments: ($('#recordComments').value||'').trim(),
+      items: collectItems()
+    };
+    if(type === 'MIR'){
+      base.mirNumber = $('#mirNumber').value||'';
+      base.materialSubmittalNo = ($('#recordSubmittalNo').value||'').trim();
+      base.poNo = ($('#recordPoNo').value||'').trim();
+      base.to = ($('#recordTo').value||'').trim();
+      base.materialGeneralDescription = ($('#recordDesc').value||'').trim();
+      base.itemDescription = base.materialGeneralDescription;
+    } else {
+      base.prNumber = $('#prNumber').value||'';
+      base.section = ($('#recordSection').value||'').trim();
+      base.workPackage = ($('#recordWorkPackage').value||'').trim();
+      base.reqName = ($('#recordReqName').value||'').trim();
+      base.reqPosition = ($('#recordReqPosition').value||'').trim();
+      base.reqPhone = ($('#recordReqPhone').value||'').trim();
+      base.reqEmail = ($('#recordReqEmail').value||'').trim();
+      base.specialInstructions = ($('#recordSpecial').value||'').trim();
+      // وصف مختصر
+      const firstItem = base.items[0]?.desc||'';
+      base.itemDescription = firstItem;
+    }
+    return base;
+  };
+
+  // Save draft
+  $('#saveDraftBtn').onclick = async ()=>{
+    if(state.isSubmitting) return;
+    // Validation
+    if(type === 'MIR' && !$('#recordDesc').value.trim()) return toast('أدخل وصف المواد','warning');
+    if(type === 'PR' && !collectItems().some(i=>i.desc)) return toast('أدخل بند واحد على الأقل','warning');
+    if(!$('#projectSel').value) return toast('اختر المشروع','warning');
+
+    state.isSubmitting = true;
+    showSpinner(true);
+    try{
+      const id = await saveRecord(buildPayload('Draft'), editId);
+      showSpinner(false);
+      addHistory(id, editId?'Draft updated':'Draft created').catch(()=>{});
+      state.isSubmitting = false;
+      Swal.fire({icon:'success',title:'تم حفظ المسودة ✅',timer:1800,showConfirmButton:false,timerProgressBar:true});
+      MIR.switchTab('list');
+    }catch(e){
+      showSpinner(false);
+      state.isSubmitting = false;
+      console.error(e);
+      Swal.fire({icon:'success',title:'تم حفظ المسودة ✅',timer:1800,showConfirmButton:false,timerProgressBar:true});
+      MIR.switchTab('list');
+    }
+  };
+
+  // Submit
+  $('#submitBtn').onclick = async ()=>{
+    if(state.isSubmitting) return;
+    if(!$('#recordForm').checkValidity()){ $('#recordForm').reportValidity(); return; }
+
+    const conf = await confirmBox(`إرسال ${type}؟`, `سيظهر الطلب فورًا في صفحة المُستقبِل`);
+    if(!conf.isConfirmed) return;
+
+    state.isSubmitting = true;
+    showSpinner(true);
+    const payload = buildPayload('Submitted');
+    payload.submittedAt = Date.now();
+
+    let savedId = null;
+    try {
+      savedId = await saveRecord(payload, editId);
+    } catch(e){
+      console.error('submit error:', e);
+    } finally {
+      showSpinner(false);
+    }
+
+    if(savedId){
+      addHistory(savedId, editId?'Re-submitted':'Submitted').catch(()=>{});
+    }
+
+    Swal.fire({
+      icon: 'success',
+      title: `تم إرسال ${type} بنجاح ✅`,
+      html: `<div style="font-size:14px;color:#6c757d;">${type} <strong>${esc(payload.mirNumber||payload.prNumber)}</strong> وصل للمُستقبِل</div>`,
+      timer: 2000,
+      showConfirmButton: false,
+      timerProgressBar: true
+    });
+    state.isSubmitting = false;
+    MIR.switchTab('list');
+  };
+}
+
+/* ============ Projects Tab ============ */
+function renderProjects(mc){
+  const projects = state.projects;
+  mc.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <div>
+        <h4 class="mb-0 fw-bold">إدارة المشاريع</h4>
+        <small class="text-muted">${projects.length} مشروع</small>
+      </div>
+      <button class="btn btn-primary" onclick="MIR.showAddProject()">
+        <i class="fas fa-plus me-2"></i>إضافة مشروع جديد
+      </button>
+    </div>
+
+    <div class="panel">
+      <h5 class="mb-3"><i class="fas fa-list me-2"></i>قائمة المشاريع</h5>
+      ${projects.length===0 ? `
+        <div class="text-center p-5">
+          <i class="fas fa-building" style="font-size:60px;color:#ccc;"></i>
+          <h5 class="mt-3 text-muted">لا توجد مشاريع بعد</h5>
+          <button class="btn btn-primary mt-2" onclick="MIR.showAddProject()"><i class="fas fa-plus me-2"></i>إضافة أول مشروع</button>
+        </div>
+      ` : `
+        <div class="projects-grid">
+          ${projects.map(p=>`
+            <div class="project-card">
+              <button class="del-proj" onclick="MIR.deleteProject('${p.id}')" title="حذف المشروع">
+                <i class="fas fa-trash"></i>
+              </button>
+              <div class="proj-code">${esc(p.code||'—')}</div>
+              <div class="proj-name">${esc(p.name||'—')}</div>
+              <div class="proj-info">
+                <div><strong>WBS:</strong> ${esc(p.wbs||'—')}</div>
+                <div><strong>Contract No:</strong> ${esc(p.contractNo||'—')}</div>
+                <div><strong>Contract:</strong> ${esc(p.contract||'—')}</div>
+                <div><strong>Contractor:</strong> ${esc(p.contractor||'—')}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `}
+    </div>
+  `;
+}
+
+async function showAddProjectDialog(){
+  const { value: formValues } = await Swal.fire({
+    title: 'إضافة مشروع جديد',
+    html: `
+      <div style="text-align:right;direction:rtl;">
+        <div style="margin-bottom:10px;"><label style="font-weight:600;font-size:13px;">اسم المشروع *</label>
+          <input id="pName" class="swal2-input" placeholder="مثال: برج النيل" style="margin:5px 0;width:100%;"></div>
+        <div style="margin-bottom:10px;"><label style="font-weight:600;font-size:13px;">كود المشروع</label>
+          <input id="pCode" class="swal2-input" placeholder="PRJ-002" style="margin:5px 0;width:100%;"></div>
+        <div style="margin-bottom:10px;"><label style="font-weight:600;font-size:13px;">WBS / Package</label>
+          <input id="pWbs" class="swal2-input" placeholder="WBS-02" style="margin:5px 0;width:100%;"></div>
+        <div style="margin-bottom:10px;"><label style="font-weight:600;font-size:13px;">Contract No.</label>
+          <input id="pContractNo" class="swal2-input" placeholder="CN-2026-02" style="margin:5px 0;width:100%;"></div>
+        <div style="margin-bottom:10px;"><label style="font-weight:600;font-size:13px;">Contract</label>
+          <input id="pContract" class="swal2-input" placeholder="Main Contract" style="margin:5px 0;width:100%;"></div>
+        <div><label style="font-weight:600;font-size:13px;">Contractor</label>
+          <input id="pContractor" class="swal2-input" placeholder="اسم شركة المقاولات" style="margin:5px 0;width:100%;"></div>
+      </div>
+    `,
+    focusConfirm: false,
+    showCancelButton: true,
+    confirmButtonText: '<i class="fas fa-plus"></i> إضافة',
+    cancelButtonText: 'إلغاء',
+    confirmButtonColor: '#1a5276',
+    preConfirm: () => {
+      const name = document.getElementById('pName').value.trim();
+      if(!name){ Swal.showValidationMessage('اسم المشروع مطلوب'); return false; }
+      return {
+        name,
+        code: document.getElementById('pCode').value,
+        wbs: document.getElementById('pWbs').value,
+        contractNo: document.getElementById('pContractNo').value,
+        contract: document.getElementById('pContract').value,
+        contractor: document.getElementById('pContractor').value
+      };
+    }
+  });
+  if(formValues){
+    try { await addProject(formValues); } catch(e){ console.error(e); }
+    Swal.fire({icon:'success',title:'تم إضافة المشروع بنجاح ✅',timer:1800,showConfirmButton:false,timerProgressBar:true});
+  }
+}
+
+/* ============ Review ============ */
+async function renderReview(mc, id){
+  const path = getCurrentPath();
+  const type = state.type;
+  const snap = await dbGet(dbRef(rtdb,`${path}/${id}`));
+  if(!snap.exists()) return toast('الطلب غير موجود','error');
+  const record = {id, ...snap.val()};
+  const history = await getHistory(id);
+
+  mc.innerHTML = `
+    ${typeSwitchHtml()}
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <div>
+        <h4 class="fw-bold mb-0">${esc(record[type==='MIR'?'mirNumber':'prNumber'])} ${statusBadge(record.status)}</h4>
+        <small class="text-muted">${esc(record.projectName||'')}</small>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <button class="btn btn-outline-secondary" onclick="MIR.switchTab('list')"><i class="fas fa-arrow-right"></i> رجوع</button>
+        <button class="btn btn-outline-warning" onclick="MIR.edit('${id}')"><i class="fas fa-edit me-1"></i> تعديل</button>
+        <button class="btn btn-outline-primary" onclick="MIR.pdf('${id}')"><i class="fas fa-file-pdf me-1"></i> PDF</button>
+        <button class="btn btn-outline-danger" onclick="MIR.deleteRecord('${id}')"><i class="fas fa-trash me-1"></i> حذف</button>
+      </div>
+    </div>
+    <div class="row g-3">
+      <div class="col-lg-8">
+        <div class="form-section">
+          <h6>بيانات الطلب (${type})</h6>
+          <div class="row g-3">
+            <div class="col-md-6"><strong>Project:</strong> ${esc(record.projectName||'-')}</div>
+            <div class="col-md-6"><strong>Contractor:</strong> ${esc(record.contractor||'-')}</div>
+            <div class="col-md-6"><strong>WBS:</strong> ${esc(record.wbs||'-')}</div>
+            <div class="col-md-6"><strong>Date:</strong> ${esc(record.date||'-')}</div>
+            ${type==='MIR'?`
+              <div class="col-12"><strong>Material Description:</strong><br>${esc(record.materialGeneralDescription||'-')}</div>
+            `:`
+              <div class="col-md-6"><strong>Section:</strong> ${esc(record.section||'-')}</div>
+              <div class="col-md-6"><strong>Work Package:</strong> ${esc(record.workPackage||'-')}</div>
+              <div class="col-md-6"><strong>Requested By:</strong> ${esc(record.reqName||'-')}</div>
+              <div class="col-md-6"><strong>Position:</strong> ${esc(record.reqPosition||'-')}</div>
+            `}
+          </div>
+          <hr>
+          <h6>البنود (${(record.items||[]).length})</h6>
+          <table class="table table-sm">
+            <thead><tr>${type==='MIR'
+              ? '<th>#</th><th>Description</th><th>Qty</th><th>Location</th><th>Date</th>'
+              : '<th>#</th><th>Code</th><th>Description</th><th>Qty</th><th>Unit</th><th>Price</th>'
+            }</tr></thead>
+            <tbody>
+              ${(record.items||[]).map((it,i)=>`<tr>${type==='MIR'
+                ? `<td>${i+1}</td><td>${esc(it.desc||'')}</td><td>${esc(it.qty||'')}</td><td>${esc(it.loc||'')}</td><td>${esc(it.date||'')}</td>`
+                : `<td>${i+1}</td><td>${esc(it.code||'')}</td><td>${esc(it.desc||'')}</td><td>${esc(it.qty||'')}</td><td>${esc(it.unit||'')}</td><td>${esc(it.price||'')}</td>`
+              }</tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="form-section">
+          <h6>سجل الطلب</h6>
+          <div class="timeline">
+            ${history.map(h=>`<div class="timeline-item">
+              <div class="time">${fmtDateTime(h.at)}</div>
+              <div class="action">${esc(h.action)}</div>
+              <div class="by">بواسطة: ${esc(h.by||'-')}</div>
+            </div>`).join('') || '<small class="text-muted">لا يوجد سجل</small>'}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ============ Chat Render ============ */
+function renderChat(mc){
+  mc.innerHTML = `
+    <div class="chat-container">
+      <div class="chat-header">
+        <div class="info">
+          <div class="avatar"><i class="fas fa-clipboard-check"></i></div>
+          <div>
+            <div class="name">المُستقبِل — الشركة / الاستشاري</div>
+            <div class="status"><span class="online-dot"></span> متصل الآن</div>
+          </div>
+        </div>
+        <div class="actions">
+          <button onclick="MIR.clearAllChat()" title="حذف الكل"><i class="fas fa-trash-alt"></i></button>
+        </div>
+      </div>
+      <div class="chat-area" id="chatArea"></div>
+      <div class="edit-banner" id="editBanner">
+        <span><i class="fas fa-edit"></i> جاري تعديل الرسالة...</span>
+        <button onclick="MIR.cancelChatEdit()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="emoji-picker" id="emojiPicker">
+        <div class="title">اختر إيموجي</div>
+        <div class="grid" id="emojiGrid"></div>
+      </div>
+      <div class="chat-input">
+        <button class="emoji-btn" onclick="MIR.toggleEmoji(event)">😊</button>
+        <textarea id="msgInput" placeholder="اكتب رسالة..." rows="1"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="MIR.sendChat()" disabled>
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  `;
+
+  $('#emojiGrid').innerHTML = EMOJIS.map(e=>`<button onclick="MIR.insertEmoji('${e}')">${e}</button>`).join('');
+  const input = $('#msgInput');
+  input.addEventListener('input', ()=>{
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+    updateSendButton();
+  });
+  input.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); if(input.value.trim()) sendChatMessage(); }
+  });
+  document.addEventListener('click', (e)=>{
+    if(!e.target.closest('#emojiPicker') && !e.target.closest('.emoji-btn')){
+      const p = $('#emojiPicker'); if(p) p.classList.remove('active');
+    }
+  });
+  renderChatMessages();
+  scrollChatToBottom();
+}
+
+function renderChatMessages(){
+  const area = $('#chatArea');
+  if(!area) return;
+  const msgs = state.chatMessages;
+  if(msgs.length === 0){
+    area.innerHTML = `<div class="empty-chat"><div class="icon"><i class="fas fa-comments"></i></div><h4>لا توجد رسائل بعد</h4><p>ابدأ المحادثة</p></div>`;
+    return;
+  }
+  let html = ''; let lastDay = null;
+  msgs.forEach(m=>{
+    const msgDay = fmtDay(m.createdAt);
+    if(msgDay !== lastDay){ html += `<div class="date-separator"><span>${esc(msgDay)}</span></div>`; lastDay = msgDay; }
+    html += renderChatMessage(m);
+  });
+  const wasAtBottom = isChatNearBottom(area);
+  area.innerHTML = html;
+  if(wasAtBottom) scrollChatToBottom();
+}
+
+function renderChatMessage(m){
+  const isSent = m.role === ROLE;
+  const isDeleted = m.deleted === true;
+  let reactionsHtml = '';
+  if(m.reactions && Object.keys(m.reactions).length > 0){
+    const counts = {}; Object.values(m.reactions).forEach(r=>{ counts[r] = (counts[r]||0)+1; });
+    const myReaction = m.reactions[ROLE];
+    reactionsHtml = `<div class="msg-reactions">${Object.entries(counts).map(([emoji,count])=>`
+      <span class="reaction-badge ${myReaction===emoji?'mine':''}" onclick="MIR.reactChat('${m.id}','${emoji}')">${emoji} ${count}</span>
+    `).join('')}</div>`;
+  }
+  let textHtml = '';
+  if(isDeleted) textHtml = `<div class="msg-text deleted"><i class="fas fa-ban"></i> تم حذف هذه الرسالة</div>`;
+  else textHtml = `<div class="msg-text ${m.edited?'edited':''}">${esc(m.text)}</div>`;
+  let actionsHtml = '';
+  if(!isDeleted){
+    actionsHtml = `<div class="msg-actions">
+      <button onclick="MIR.reactChat('${m.id}','❤️')" title="إعجاب">❤️</button>
+      <button onclick="MIR.reactChat('${m.id}','😂')" title="ضحك">😂</button>
+      <button onclick="MIR.reactChat('${m.id}','👍')" title="ممتاز">👍</button>
+      ${isSent ? `<button onclick="MIR.startChatEdit('${m.id}')" title="تعديل">✏️</button>
+      <button onclick="MIR.deleteChatMsg('${m.id}')" title="حذف">🗑️</button>` : ''}
+    </div>`;
+  }
+  const senderName = m.role === 'contractor' ? '🔧 المُرسِل' : '📋 المُستقبِل';
+  const senderHtml = !isSent ? `<div class="msg-sender">${senderName}</div>` : '';
+  return `
+    <div class="msg-wrapper ${isSent?'sent':'received'}">
+      <div class="msg-bubble">
+        ${senderHtml}${textHtml}
+        <div class="msg-meta"><span>${fmtTime(m.createdAt)}</span>${isSent ? `<i class="fas fa-check-double read-tick"></i>` : ''}</div>
+        ${reactionsHtml}${actionsHtml}
+      </div>
+    </div>
+  `;
+}
+
+function isChatNearBottom(el){ return el.scrollHeight - el.scrollTop - el.clientHeight < 150; }
+
+/* ============ PDF ============ */
+async function generatePdf(id){
+  const path = getCurrentPath();
+  const type = state.type;
+  const snap = await dbGet(dbRef(rtdb,`${path}/${id}`));
+  if(!snap.exists()) return toast('الطلب غير موجود','error');
+  const record = {id, ...snap.val()};
+  const num = record[type==='MIR'?'mirNumber':'prNumber'] || 'DOC';
+
+  const printWindow = window.open('', '_blank', 'width=900,height=700');
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="en" dir="ltr">
+    <head>
+      <meta charset="UTF-8">
+      <title>${esc(num)}</title>
+      <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+      <style>${pdfStyles()}</style>
+    </head>
+    <body>
+      <div class="mir-page">
+        <div class="mir-form-wrap">
+          ${type === 'MIR' ? renderMirPdfContent(record) : renderPrPdfContent(record)}
+        </div>
+      </div>
+      <script>window.onload=()=>setTimeout(()=>window.print(),500);<\/script>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+  toast('جاري فتح نافذة الطباعة...');
+}
+
+function pdfStyles(){
+  return `
+    @page{ size: A4 portrait; margin: 0; }
+    *{ box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; font-family: Arial,'Segoe UI','Times New Roman',sans-serif; margin:0; padding:0; }
+    html, body{ margin:0; padding:0; background:#fff; width:210mm; height:297mm; overflow:hidden; }
+    .mir-page{ width:210mm; height:297mm; padding:6mm 6mm 4mm 6mm; display:flex; flex-direction:column; background:#fff; }
+    .mir-form-wrap{ border:2px solid #000; width:100%; flex:1; display:flex; flex-direction:column; overflow:hidden; }
+    .form-header{ display:flex; justify-content:space-between; align-items:center; padding:5px 10px; border-bottom:2px solid #000; flex-shrink:0; }
+    .form-header .logo-box{ width:130px; text-align:center; font-weight:800; font-size:22px; letter-spacing:1.5px; line-height:1; }
+    .form-header .logo-box small{ display:block; font-size:9px; letter-spacing:.5px; font-weight:600; line-height:1.2; margin-top:2px; }
+    .form-header .project-title{ flex:1; text-align:center; }
+    .form-header .project-title .proj-name{ font-size:16px; font-weight:800; letter-spacing:.5px; line-height:1.2; }
+    .form-header .project-title .form-name{ font-size:15px; font-weight:700; letter-spacing:.5px; margin-top:2px; }
+    .form-header .client-logo{ width:130px; text-align:center; font-weight:800; font-size:10px; letter-spacing:.5px; }
+    .form-header .client-logo .building-icon{ font-size:20px; line-height:1; margin-bottom:2px; }
+    table.form-table{ width:100%; border-collapse:collapse; flex-shrink:0; table-layout:fixed; }
+    table.form-table th, table.form-table td{ border:1px solid #000; padding:4px 7px; font-size:12px; vertical-align:middle; line-height:1.3; overflow:hidden; text-overflow:ellipsis; }
+    table.form-table th{ text-align:left; font-weight:700; text-transform:uppercase; }
+    .section-bar{ border-top:1px solid #000; border-bottom:1px solid #000; padding:3px 8px; font-weight:700; font-size:12px; text-transform:uppercase; line-height:1.3; flex-shrink:0; background:#f0f0f0; }
+    .section-note{ padding:2px 8px; font-size:10px; font-style:italic; border-bottom:1px solid #000; line-height:1.3; flex-shrink:0; }
+    .field-label{ font-weight:700; font-size:11px; text-transform:uppercase; line-height:1.3; }
+    .field-value{ font-size:12px; min-height:16px; line-height:1.4; padding:1px 0; }
+    .action-code-row{ display:flex; gap:25px; padding:5px 10px; font-size:12px; border-bottom:1px solid #000; align-items:center; flex-shrink:0; }
+    .action-code-row .code-item{ display:flex; align-items:center; gap:6px; }
+    .action-code-row .code-box{ width:15px; height:15px; border:1.5px solid #000; display:inline-block; text-align:center; line-height:12px; font-size:11px; font-weight:800; }
+    .action-code-row .code-box.checked::after{ content:'✓'; font-size:14px; }
+    .field-row{ display:flex; border-bottom:1px solid #000; flex-shrink:0; }
+    .field-row:last-child{ border-bottom:none; }
+    .field-cell{ flex:1; padding:4px 7px; border-left:1px solid #000; min-height:24px; overflow:hidden; }
+    .field-cell:last-child{ border-left:none; }
+    .items-table{ width:100%; border-collapse:collapse; flex:1; table-layout:fixed; height:100%; }
+    .items-table th{ border:1px solid #000; padding:3px 5px; font-size:11px; font-weight:700; text-align:center; line-height:1.3; vertical-align:middle; background:#f0f0f0; height:28px; }
+    .items-table td{ border:1px solid #000; padding:3px 5px; font-size:12px; vertical-align:middle; line-height:1.3; height:22px; max-height:22px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .items-table td.center{ text-align:center; }
+    .items-table tr.empty-row td{ height:auto; min-height:18px; }
+    .footer-page{ text-align:center; font-size:10px; padding:3px; border-top:1px solid #000; margin-top:auto; flex-shrink:0; }
+    .distribution-row{ display:flex; justify-content:space-around; padding:5px; font-size:12px; }
+    .distribution-row label{ display:flex; align-items:center; gap:5px; }
+    .distribution-row input[type=checkbox]{ width:14px; height:14px; }
+    @media print{ html, body{ width:210mm; height:297mm; overflow:hidden; } body{ margin:0 !important; padding:0 !important; } .mir-page{ page-break-after:avoid; page-break-inside:avoid; } }
+  `;
+}
+
+/* MIR PDF */
+function renderMirPdfContent(mir){
+  const items = mir.items||[];
+  const actionCode = mir.actionCode||'';
+  const TOTAL_ROWS = 8;
+  const v = (val)=> val && String(val).trim() ? esc(val) : '<span style="color:#aaa;">—</span>';
+
+  let itemsRows = items.slice(0, TOTAL_ROWS).map((it,i)=>`
+    <tr>
+      <td class="center">${i+1}</td>
+      <td>${v(it.desc)}</td>
+      <td class="center">${v(it.qty)}</td>
+      <td>${v(it.loc)}</td>
+      <td class="center">${v(it.date)}</td>
+    </tr>
+  `).join('');
+
+  const emptyCount = Math.max(0, TOTAL_ROWS - items.length);
+  const emptyRowsHtml = Array(emptyCount).fill(`
+    <tr class="empty-row"><td class="center"></td><td></td><td></td><td></td><td></td></tr>
+  `).join('');
+
+  return `
+    <div class="form-header">
+      <div class="logo-box">OPM<small>ORABI PROJECT MANAGEMENT</small></div>
+      <div class="project-title">
+        <div class="proj-name">${v(mir.projectName || '1032 SQUARE MALL')}</div>
+        <div class="form-name">MATERIAL INSPECTION REQUEST (MIR)</div>
+      </div>
+      <div class="client-logo">
+        <div class="building-icon"><i class="fas fa-building"></i></div>
+        AL MORTAGABA
+      </div>
+    </div>
+
+    <table class="form-table" style="border-top:none;">
+      <tr><th style="width:15%;">WBS (Package)</th><td style="width:35%;">${v(mir.wbs)}</td>
+          <th style="width:15%;">MIR NO.</th><td style="width:35%;"><strong>${v(mir.mirNumber)}</strong></td></tr>
+      <tr><th>CONTRACT NO.</th><td>${v(mir.contractNo)}</td>
+          <th>DATE</th><td>${v(mir.date)}</td></tr>
+      <tr><th>CONTRACT</th><td>${v(mir.contract)}</td>
+          <th>MATERIAL SUBMITTAL NO.</th><td>${v(mir.materialSubmittalNo)}</td></tr>
+      <tr><th>CONTRACTOR</th><td>${v(mir.contractor)}</td>
+          <th>PO. NO.</th><td>${v(mir.poNo)}</td></tr>
+    </table>
+
+    <div class="section-bar">SECTION A: DETAILS OF MATERIAL INSPECTION</div>
+    <div class="section-note">Note: this section to be completed by the Contractor and to be passed to the Consultant Rep.</div>
+
+    <table class="form-table" style="border:none;">
+      <tr><th style="width:8%;border-top:none;border-right:none;border-bottom:1px solid #000;">TO:</th>
+          <td style="border-top:none;border-right:none;border-left:none;border-bottom:1px solid #000;">${v(mir.to || 'The Engineer / Consultant')}</td></tr>
+      <tr><th style="width:8%;border-top:none;border-right:none;border-bottom:1px solid #000;">Material General Description:</th>
+          <td style="border-top:none;border-right:none;border-left:none;border-bottom:1px solid #000;">${v(mir.materialGeneralDescription)}</td></tr>
+    </table>
+
+    <table class="items-table">
+      <thead><tr>
+        <th style="width:5%;">ID</th>
+        <th style="width:35%;">Item/Qty. Description</th>
+        <th style="width:12%;">Qty. Delivered</th>
+        <th style="width:28%;">Inspection Location/Scope of Work</th>
+        <th style="width:20%;">Date of Material Delivery</th>
+      </tr></thead>
+      <tbody>${itemsRows}${emptyRowsHtml}</tbody>
+    </table>
+
+    <div class="field-row"><div class="field-cell" style="flex:1;">
+      <div class="field-label">Attachments</div>
+      <div class="field-value">${mir.attachments && mir.attachments.length ? mir.attachments.map(a=>esc(a.name)).join(', ') : '<span style="color:#aaa;">—</span>'}</div>
+    </div></div>
+
+    <div class="field-row">
+      <div class="field-cell" style="flex:3;"><div class="field-label">Comments:</div>
+        <div class="field-value">${v(mir.contractorComments)}</div></div>
+      <div class="field-cell" style="flex:1;"><div class="field-label">Date:</div>
+        <div class="field-value">${v(mir.date)}</div></div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-cell" style="flex:3;"><div class="field-label">Project Manager:</div>
+        <div class="field-value">${v(mir.projectManager)}</div></div>
+      <div class="field-cell" style="flex:1;"><div class="field-label">Date:</div>
+        <div class="field-value">${v(mir.date)}</div></div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-cell" style="flex:3;"><div class="field-label">Received by PMO Representative:</div>
+        <div class="field-value">${v(mir.receivedByPmo)}</div></div>
+      <div class="field-cell" style="flex:1;"><div class="field-label">Date:</div>
+        <div class="field-value">${v(mir.receivedByPmoDate)}</div></div>
+    </div>
+
+    <div class="section-bar">SECTION B: THE CONSULTANT REP'S COMMENTS</div>
+    <div class="section-note">Note: This Section to be completed by the Consultant Rep and return to the Contractor</div>
+
+    <div class="action-code-row">
+      <span style="font-weight:700;">Action Code</span>
+      ${Object.keys(ACTION_CODES).map(k=>`
+        <label class="code-item">
+          <span class="code-box ${actionCode===k?'checked':''}"></span>
+          <strong>${k}</strong>
+        </label>
+      `).join('')}
+    </div>
+
+    <div class="field-row"><div class="field-cell" style="flex:1;">
+      <div class="field-label">Technical Inspection comments:</div>
+      <div class="field-value" style="min-height:35px;">${v(mir.technicalInspectionComments)}</div>
+    </div></div>
+
+    <div class="field-row">
+      <div class="field-cell" style="flex:3;"><div class="field-label">Verification of quantities:</div>
+        <div class="field-value" style="min-height:22px;">${v(mir.verificationOfQuantities)}</div></div>
+      <div class="field-cell" style="flex:1;"><div class="field-label">Date:</div>
+        <div class="field-value">${v(mir.consultantRepDate)}</div></div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-cell" style="flex:3;"><div class="field-label">Consultant Rep:</div>
+        <div class="field-value" style="min-height:22px;">${v(mir.consultantRep)}</div></div>
+      <div class="field-cell" style="flex:1;"><div class="field-label">Date:</div>
+        <div class="field-value">${v(mir.consultantRepDate)}</div></div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-cell" style="flex:3;"><div class="field-label">Received by Contractor:</div>
+        <div class="field-value" style="min-height:22px;">${v(mir.receivedByContractor)}</div></div>
+      <div class="field-cell" style="flex:1;"><div class="field-label">Date:</div>
+        <div class="field-value">${v(mir.receivedByContractorDate)}</div></div>
+    </div>
+
+    <div class="field-row" style="border-top:1px solid #000;">
+      <div class="field-cell" style="flex:1;padding:6px;">
+        <div class="field-label" style="margin-bottom:5px;">Distribution:</div>
+        <div class="distribution-row">
+          <label><input type="checkbox" disabled ${mir.distEmployer?'checked':''}> The Employer</label>
+          <label><input type="checkbox" disabled ${mir.distEngineer?'checked':''}> The Engineer (PMO)</label>
+          <label><input type="checkbox" disabled ${mir.distConsultant!==false?'checked':''}> Consultant Rep.</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-page">1 of 1</div>
+  `;
+}
+
+/* PR PDF */
+function renderPrPdfContent(pr){
+  const items = pr.items||[];
+  const actionCode = pr.actionCode||'';
+  const TOTAL_ROWS = 12;
+  const v = (val)=> val && String(val).trim() ? esc(val) : '<span style="color:#aaa;">—</span>';
+
+  let itemsRows = items.slice(0, TOTAL_ROWS).map((it,i)=>`
+    <tr>
+      <td class="center">${i+1}</td>
+      <td class="center">${v(it.code)}</td>
+      <td>${v(it.desc)}</td>
+      <td class="center">${v(it.qty)}</td>
+      <td class="center">${v(it.unit)}</td>
+      <td class="center">${v(it.date)}</td>
+      <td class="center">${v(it.price)}</td>
+      <td>${v(it.remarks)}</td>
+    </tr>
+  `).join('');
+
+  const emptyCount = Math.max(0, TOTAL_ROWS - items.length);
+  const emptyRowsHtml = Array(emptyCount).fill(`
+    <tr class="empty-row"><td class="center"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+  `).join('');
+
+  return `
+    <div class="form-header">
+      <div class="logo-box">OPM<small>ORABI PROJECT MANAGEMENT</small></div>
+      <div class="project-title">
+        <div class="proj-name">${v(pr.projectName || '1032 SQUARE MALL')}</div>
+        <div class="form-name">PURCHASE REQUEST (PR)</div>
+      </div>
+      <div class="client-logo">
+        <div class="building-icon"><i class="fas fa-building"></i></div>
+        AL MORTAGABA
+      </div>
+    </div>
+
+    <table class="form-table" style="border-top:none;">
+      <tr><th style="width:15%;">WBS (Package)</th><td style="width:35%;">${v(pr.wbs)}</td>
+          <th style="width:15%;">PR NO.</th><td style="width:35%;"><strong>${v(pr.prNumber)}</strong></td></tr>
+      <tr><th>CONTRACT NO.</th><td>${v(pr.contractNo)}</td>
+          <th>DATE</th><td>${v(pr.date)}</td></tr>
+      <tr><th>CONTRACT</th><td>${v(pr.contract)}</td>
+          <th></th><td></td></tr>
+      <tr><th>CONTRACTOR</th><td>${v(pr.contractor)}</td>
+          <th></th><td></td></tr>
+    </table>
+
+    <div class="section-bar">Item</div>
+    <table class="form-table" style="border:none;">
+      <tr><th style="width:25%;border-top:none;">Project</th><td style="width:25%;border-top:none;">${v(pr.projectName)}</td>
+          <th style="width:25%;border-top:none;">REQUESTED BY:</th><td style="width:25%;border-top:none;"></td></tr>
+      <tr><th>Section</th><td>${v(pr.section)}</td>
+          <th>NAME</th><td>${v(pr.reqName)}</td></tr>
+      <tr><th>Work Package</th><td>${v(pr.workPackage)}</td>
+          <th>POSITION</th><td>${v(pr.reqPosition)}</td></tr>
+      <tr><th></th><td></td>
+          <th>PHONE</th><td>${v(pr.reqPhone)}</td></tr>
+      <tr><th></th><td></td>
+          <th>EMAIL ADDRESS</th><td>${v(pr.reqEmail)}</td></tr>
+    </table>
+
+    <table class="items-table">
+      <thead><tr>
+        <th style="width:5%;">ID</th>
+        <th style="width:8%;">Code</th>
+        <th style="width:32%;">Description</th>
+        <th style="width:7%;">Qty.</th>
+        <th style="width:8%;">Unit</th>
+        <th style="width:13%;">Required by date</th>
+        <th style="width:12%;">Estimated price</th>
+        <th style="width:15%;">Remarks</th>
+      </tr></thead>
+      <tbody>${itemsRows}${emptyRowsHtml}</tbody>
+    </table>
+
+    <div class="field-row">
+      <div class="field-cell" style="flex:3;"><div class="field-label">Special ordering instructions :</div>
+        <div class="field-value">${v(pr.specialInstructions)}</div></div>
+      <div class="field-cell" style="flex:1;"><div class="field-label">Date:</div>
+        <div class="field-value">${v(pr.date)}</div></div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-cell" style="flex:1;"><div class="field-label">Requested By:</div>
+        <div class="field-value" style="min-height:30px;">${v(pr.reqName)}</div></div>
+    </div>
+
+    <div class="field-row" style="border-top:1px solid #000;">
+      <div class="field-cell" style="flex:1;padding:6px;">
+        <div class="field-label" style="margin-bottom:5px;">Distribution:</div>
+        <div class="distribution-row">
+          <label><input type="checkbox" disabled ${pr.distEmployer?'checked':''}> The Employer</label>
+          <label><input type="checkbox" disabled ${pr.distEngineer!==false?'checked':''}> The Engineer (PMO)</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-page">1 of 1</div>
+  `;
+}
+
+/* ============ Public API ============ */
+window.MIR = {
+  switchTab: (tab)=>{
+    state.tab = tab;
+    if(tab==='create') state.editingId = null;
+    if(tab==='chat'){
+      state.chatLastSeen = Date.now();
+      localStorage.setItem('chatLastSeen_contractor', Date.now());
+      const badge = $('#chatBadge'); if(badge) badge.style.display = 'none';
+    }
+    render();
+    window.scrollTo({top:0,behavior:'smooth'});
+  },
+  switchType: switchType,
+  edit: (id)=>{ state.tab='edit'; state.editingId=id; render(); window.scrollTo({top:0,behavior:'smooth'}); },
+  view: (id)=>{ state.tab='review'; state.editingId=id; render(); window.scrollTo({top:0,behavior:'smooth'}); },
+  pdf: (id)=>generatePdf(id),
+  deleteRecord: deleteRecord,
+  clearAll: clearAll,
+  showAddProject: showAddProjectDialog,
+  deleteProject: deleteProject,
+  sendChat: sendChatMessage,
+  startChatEdit,
+  cancelChatEdit,
+  deleteChatMsg,
+  reactChat,
+  clearAllChat,
+  toggleEmoji: toggleEmojiPicker,
+  insertEmoji
+};
+
+/* ============ INIT ============ */
+listenProjects(()=>{ if(state.tab==='projects' || state.tab==='create' || state.tab==='edit') render(); });
+listenMir(()=>{ if(state.tab==='dashboard'||state.tab==='list') render(); });
+listenPr(()=>{ if(state.tab==='dashboard'||state.tab==='list') render(); });
+listenChat(()=>{ if(state.tab==='chat') renderChatMessages(); });
+render();
+</script>
+</body>
+</html>
